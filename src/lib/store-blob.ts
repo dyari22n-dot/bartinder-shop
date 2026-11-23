@@ -1,4 +1,4 @@
-import { BlobNotFoundError, get, put } from "@vercel/blob";
+import { BlobNotFoundError, get, head, put } from "@vercel/blob";
 import type { StoreData } from "./types";
 import { vercelBlobEnabled } from "./media-upload";
 
@@ -33,17 +33,32 @@ async function readStreamAsText(
   return new TextDecoder("utf-8").decode(merged);
 }
 
+async function readRawJsonFromBlob(token: string): Promise<string | null> {
+  const result = await get(STORE_BLOB_PATH, {
+    access: "public",
+    token,
+    useCache: false,
+  });
+  if (result?.statusCode === 200 && result.stream) {
+    return readStreamAsText(result.stream);
+  }
+  try {
+    const meta = await head(STORE_BLOB_PATH, { token });
+    const res = await fetch(meta.downloadUrl, { cache: "no-store" });
+    if (!res.ok) return null;
+    return res.text();
+  } catch (e) {
+    if (e instanceof BlobNotFoundError) return null;
+    throw e;
+  }
+}
+
 export async function readStoreFromBlob(): Promise<StoreData | null> {
   const token = blobToken();
   if (!token) return null;
   try {
-    const result = await get(STORE_BLOB_PATH, {
-      access: "public",
-      token,
-      useCache: false,
-    });
-    if (!result || result.statusCode !== 200 || !result.stream) return null;
-    const raw = await readStreamAsText(result.stream);
+    const raw = await readRawJsonFromBlob(token);
+    if (!raw) return null;
     return JSON.parse(raw) as StoreData;
   } catch (e) {
     if (e instanceof BlobNotFoundError) return null;

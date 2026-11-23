@@ -14,7 +14,9 @@ import { optSubtitle, triLabel, triName, triTitle } from "./locale-names";
 import { slugifyLabel } from "./slug";
 import { resolveCategoryMotionUrl } from "./motion-url";
 
-const readStore = cache(async (): Promise<StoreData> => readRawStore());
+async function readStore(): Promise<StoreData> {
+  return readRawStore();
+}
 
 async function writeStore(data: StoreData): Promise<void> {
   await writeRawStore(data);

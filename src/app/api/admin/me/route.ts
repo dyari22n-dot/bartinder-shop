@@ -22,7 +22,14 @@ export async function GET() {
     try {
       const { getStoreForAdmin } = await import("@/lib/db");
       const store = await getStoreForAdmin();
-      return NextResponse.json({ authed: true, store });
+      return NextResponse.json(
+        { authed: true, store },
+        {
+          headers: {
+            "Cache-Control": "private, no-store, max-age=0",
+          },
+        },
+      );
     } catch (loadErr) {
       console.error("[admin/me] store:", loadErr);
       return NextResponse.json({ authed: true, store: emptyStore, error: "داتا" });

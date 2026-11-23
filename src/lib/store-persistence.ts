@@ -1,5 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { unstable_noStore as noStore } from "next/cache";
 import { connection } from "next/server";
 import type { StoreData } from "./types";
 import { vercelBlobEnabled } from "./media-upload";
@@ -29,6 +30,7 @@ async function writeStoreToJson(data: StoreData): Promise<void> {
 
 /** خوێندن — Vercel Blob یان data/store.json */
 export async function readRawStore(): Promise<StoreData> {
+  noStore();
   try {
     await connection();
   } catch {
@@ -39,14 +41,26 @@ export async function readRawStore(): Promise<StoreData> {
     try {
       const fromBlob = await readStoreFromBlob();
       if (fromBlob) return normalizeStoreData(fromBlob);
-      const local = await readStoreFromJson();
-      await writeStoreToBlob(normalizeStoreData(local)).catch(() => undefined);
-      return local;
+      if (process.env.VERCEL) {
+        try {
+          return await readStoreFromJson();
+        } catch {
+          return normalizeStoreData({
+            categories: [],
+            products: [],
+            slides: [],
+            contacts: [],
+            brands: [],
+            settings: {},
+          });
+        }
+      }
     } catch (e) {
-      console.warn(
-        "[store] Blob unavailable, using data/store.json:",
-        e instanceof Error ? e.message : e,
-      );
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error("[store] Blob read failed:", msg);
+      if (process.env.VERCEL) {
+        throw new Error(`خوێندن لە Blob: ${msg.slice(0, 80)}`);
+      }
     }
   }
 
