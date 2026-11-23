@@ -21,8 +21,8 @@ export function AdminStoreGuide() {
     <section className="glass mb-6 rounded-2xl border border-bk-accent/20 p-4">
       <h2 className="mb-2 text-sm font-bold text-bk-accent">ڕێنمایی فرۆشیار</h2>
       <p className="mb-2 text-[11px] text-bk-muted">
-        ناوەکان: تەنها کوردی — عەرەبی/ئینگلیزی خۆکار. لە سەرەوە بەشێک
-        هەڵبژێرە.
+        ناوەکان: تەنها کوردی. دەستکاری → فۆڕمی سەرەوە دەکرێتەوە → پاشەکەوت.
+        ئەگەر پاشەکەوت نەکرا، پەیامی سوور لە خوار فۆرمەکە دەخوێنرێتەوە.
       </p>
       <AdminHealth />
       <ol className="mt-2 list-inside list-decimal space-y-1.5 text-xs">

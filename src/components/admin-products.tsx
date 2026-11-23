@@ -3,19 +3,10 @@
 import Image from "next/image";
 import { useState, useTransition } from "react";
 import type { Brand, Category, Product } from "@/lib/types";
+import { adminPostJson, scrollToAdminForm } from "@/lib/admin-api";
 import { reloadAdmin } from "@/lib/admin-mutate";
 import { parsePriceIqdText, parsePriceUsdText } from "@/lib/price-input";
 import { formatIqd, formatUsd } from "@/lib/whatsapp";
-
-async function apiProducts<T>(body: object): Promise<T> {
-  const res = await fetch("/api/admin/products", {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  return (await res.json()) as T;
-}
 
 export function AdminProducts({
   categories,
@@ -28,6 +19,7 @@ export function AdminProducts({
 }) {
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [busyImage, setBusyImage] = useState(false);
   const [moreFields, setMoreFields] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -47,12 +39,19 @@ export function AdminProducts({
     setUsdText(usd != null && usd > 0 ? String(usd) : "");
   };
 
+  const openForm = (next: Partial<Product> & { isNew?: boolean }) => {
+    setEditing(next);
+    setError(null);
+    setSuccess(null);
+    scrollToAdminForm();
+  };
+
   const startNew = (categoryId?: string) => {
     setPendingFile(null);
     setMoreFields(false);
     syncPriceText(0);
     syncUsdText(undefined);
-    setEditing({
+    openForm({
       isNew: true,
       categoryId: categoryId ?? categories[0]?.id ?? "",
       nameCkb: "",
@@ -83,8 +82,12 @@ export function AdminProducts({
         setError("ناو + بەش پێویستە");
         return;
       }
-      const priceIqd = parsePriceIqdText(priceText);
-      const priceUsd = parsePriceUsdText(usdText);
+      const priceIqd = priceText.trim()
+        ? parsePriceIqdText(priceText)
+        : Number(editing.priceIqd) || 0;
+      const priceUsd = usdText.trim()
+        ? parsePriceUsdText(usdText)
+        : Number(editing.priceUsd) || 0;
       if (priceIqd <= 0 && priceUsd <= 0) {
         setError("نرخ بنووسە (ژمارەی ئینگلیزی 123 یان عەرەبی ١٢٣)");
         return;
@@ -99,7 +102,9 @@ export function AdminProducts({
         const nameAr = editing.nameAr?.trim();
         const nameEn = editing.nameEn?.trim();
         const desc = editing.descriptionCkb?.trim();
-        const res = await apiProducts<{ ok?: boolean; error?: string }>({
+        const res = await adminPostJson<{ ok?: boolean; error?: string }>(
+          "/api/admin/products",
+          {
           op: "save",
           product: {
             id: editing.isNew ? undefined : editing.id,
@@ -116,16 +121,19 @@ export function AdminProducts({
             imageUrl,
             active: editing.active ?? true,
           },
-        });
+          },
+        );
         if (!res.ok) {
           setError(res.error ?? "هەڵە");
+          setSuccess(null);
           return;
         }
+        setSuccess("پاشەکەوت کرا ✓");
         setEditing({});
         setPendingFile(null);
         setPriceText("");
         setUsdText("");
-        reloadAdmin();
+        setTimeout(() => reloadAdmin(), 400);
       } catch (e) {
         setError(e instanceof Error ? e.message : "هەڵە");
       } finally {
@@ -171,10 +179,22 @@ export function AdminProducts({
         + بەرهەمی نوێ
       </button>
 
-      {error ? <p className="mb-2 text-xs text-red-300">{error}</p> : null}
+      {error ? (
+        <p className="mb-2 rounded-lg border border-red-400/40 bg-red-500/10 px-2 py-1.5 text-xs text-red-200">
+          {error}
+        </p>
+      ) : null}
+      {success ? (
+        <p className="mb-2 rounded-lg border border-emerald-400/40 bg-emerald-500/10 px-2 py-1.5 text-xs text-emerald-200">
+          {success}
+        </p>
+      ) : null}
 
       {showForm ? (
-        <div className="mb-3 flex flex-col gap-2 rounded-xl border border-white/10 p-3">
+        <div
+          id="admin-active-form"
+          className="mb-3 flex flex-col gap-2 rounded-xl border border-bk-accent/30 bg-white/5 p-3"
+        >
           <select
             value={editing.categoryId ?? ""}
             onChange={(e) =>
@@ -405,7 +425,7 @@ export function AdminProducts({
                       setMoreFields(Boolean(p.descriptionAr || p.brandId));
                       syncPriceText(p.priceIqd);
                       syncUsdText(p.priceUsd);
-                      setEditing({ ...p });
+                      openForm({ ...p });
                     }}
                   >
                     دەستکاری
@@ -416,11 +436,12 @@ export function AdminProducts({
                     disabled={pending}
                     onClick={() =>
                       start(async () => {
-                        const res = await apiProducts<{ ok?: boolean }>({
-                          op: "delete",
-                          id: p.id,
-                        });
-                        if (res.ok) reloadAdmin();
+                        const res = await adminPostJson<{ ok?: boolean; error?: string }>(
+                          "/api/admin/products",
+                          { op: "delete", id: p.id },
+                        );
+                        if (!res.ok) setError(res.error ?? "سڕینەوە سەرنەکەوتی");
+                        else reloadAdmin();
                       })
                     }
                   >

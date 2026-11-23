@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { connection, NextResponse } from "next/server";
 import { formatStoreError } from "@/lib/action-errors";
 import { legacyAuthedFromJar } from "@/lib/admin-auth";
@@ -24,10 +25,16 @@ export async function POST(request: Request) {
 
     if (body.op === "delete") {
       await deleteCategory(body.id);
+      revalidatePath("/");
+      revalidatePath("/admin");
+      revalidatePath("/categories");
       return NextResponse.json({ ok: true });
     }
     if (body.op === "reorder") {
       await reorderCategories(body.ids);
+      revalidatePath("/");
+      revalidatePath("/admin");
+      revalidatePath("/categories");
       return NextResponse.json({ ok: true });
     }
     if (body.op === "save") {
@@ -39,6 +46,9 @@ export async function POST(request: Request) {
         );
       }
       const saved = await upsertCategory(c);
+      revalidatePath("/");
+      revalidatePath("/admin");
+      revalidatePath("/categories");
       return NextResponse.json({ ok: true, category: saved });
     }
     return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });

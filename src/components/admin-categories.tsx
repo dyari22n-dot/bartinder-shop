@@ -3,23 +3,15 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useState, useTransition } from "react";
+import { adminPostJson, scrollToAdminForm } from "@/lib/admin-api";
 import { reloadAdmin } from "@/lib/admin-mutate";
 import { ADMIN_KURDISH_ONLY_HINT } from "@/lib/locale-names";
 import type { Category } from "@/lib/types";
 import { AdminKurdishNameFields } from "./admin-kurdish-name-fields";
-async function apiCategories<T>(body: object): Promise<T> {
-  const res = await fetch("/api/admin/categories", {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  return (await res.json()) as T;
-}
-
 export function AdminCategories({ categories }: { categories: Category[] }) {
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [editing, setEditing] = useState<Partial<Category> & { isNew?: boolean }>(
     {},
@@ -50,10 +42,16 @@ export function AdminCategories({ categories }: { categories: Category[] }) {
   );
   const showForm = Boolean(editing.isNew || editing.id);
 
+  const openEdit = (cat: Partial<Category> & { isNew?: boolean }) => {
+    setEditing(cat);
+    setError(null);
+    scrollToAdminForm();
+  };
+
   const startNew = () => {
     setMoreNames(false);
     setFilePreview(null);
-    setEditing({
+    openEdit({
       isNew: true,
       nameCkb: "",
       nameAr: "",
@@ -79,10 +77,10 @@ export function AdminCategories({ categories }: { categories: Category[] }) {
   const persistOrder = (ordered: Category[]) => {
     start(async () => {
       setError(null);
-      const res = await apiCategories<{ ok?: boolean; error?: string }>({
-        op: "reorder",
-        ids: ordered.map((c) => c.id),
-      });
+      const res = await adminPostJson<{ ok?: boolean; error?: string }>(
+        "/api/admin/categories",
+        { op: "reorder", ids: ordered.map((c) => c.id) },
+      );
       if (!res.ok) setError(res.error ?? "هەڵە");
       else reloadAdmin();
     });
@@ -103,11 +101,11 @@ export function AdminCategories({ categories }: { categories: Category[] }) {
         setError("ناوی کوردی پێویستە");
         return;
       }
-      const res = await apiCategories<{
+      const res = await adminPostJson<{
         ok?: boolean;
         error?: string;
         category?: Category;
-      }>({
+      }>("/api/admin/categories", {
         op: "save",
         category: {
           id: editing.isNew ? undefined : editing.id,
@@ -120,15 +118,17 @@ export function AdminCategories({ categories }: { categories: Category[] }) {
       });
       if (!res.ok) {
         setError(res.error ?? "هەڵە");
+        setSuccess(null);
         return;
       }
+      setSuccess("پاشەکەوت کرا ✓");
       const categoryId = res.category?.id ?? editing.id;
       const file = pendingMotionFile;
       if (file && categoryId) {
         setPreparingImage(true);
         try {
           const url = await uploadMotionForId(file, categoryId);
-          await apiCategories({
+          await adminPostJson("/api/admin/categories", {
             op: "save",
             category: {
               id: categoryId,
@@ -147,7 +147,7 @@ export function AdminCategories({ categories }: { categories: Category[] }) {
       }
       setFilePreview(null);
       setEditing({});
-      reloadAdmin();
+      setTimeout(() => reloadAdmin(), 400);
     });
 
   const isVideoFile = (file: File) =>
@@ -205,14 +205,26 @@ export function AdminCategories({ categories }: { categories: Category[] }) {
       <p className="mb-3 text-xs text-bk-muted">
         {ADMIN_KURDISH_ONLY_HINT} · گالەری ~٨٠MB
       </p>
-      {error ? <p className="mb-2 text-xs text-red-300">{error}</p> : null}
+      {error ? (
+        <p className="mb-2 rounded-lg border border-red-400/40 bg-red-500/10 px-2 py-1.5 text-xs text-red-200">
+          {error}
+        </p>
+      ) : null}
+      {success ? (
+        <p className="mb-2 rounded-lg border border-emerald-400/40 bg-emerald-500/10 px-2 py-1.5 text-xs text-emerald-200">
+          {success}
+        </p>
+      ) : null}
 
       <button type="button" className="btn-outline mb-3 w-full text-xs" onClick={startNew}>
         + بەشی نوێ
       </button>
 
       {showForm ? (
-        <div className="mb-4 flex flex-col gap-2 rounded-xl border border-white/10 p-3">
+        <div
+          id="admin-active-form"
+          className="mb-4 flex flex-col gap-2 rounded-xl border border-bk-accent/30 bg-white/5 p-3"
+        >
           <AdminKurdishNameFields
             values={{
               ckb: editing.nameCkb ?? "",
@@ -329,7 +341,10 @@ export function AdminCategories({ categories }: { categories: Category[] }) {
                 <button
                   type="button"
                   className="text-[10px] text-bk-accent"
-                  onClick={() => setEditing({ ...cat })}
+                  onClick={() => {
+                    setMoreNames(false);
+                    openEdit({ ...cat });
+                  }}
                 >
                   دەستکاری
                 </button>
@@ -340,10 +355,10 @@ export function AdminCategories({ categories }: { categories: Category[] }) {
                   onClick={() =>
                     start(async () => {
                       if (!confirm(`سڕینەوەی «${cat.nameCkb}»؟`)) return;
-                      const res = await apiCategories<{ ok?: boolean; error?: string }>({
-                        op: "delete",
-                        id: cat.id,
-                      });
+                      const res = await adminPostJson<{ ok?: boolean; error?: string }>(
+                        "/api/admin/categories",
+                        { op: "delete", id: cat.id },
+                      );
                       if (!res.ok) setError(res.error ?? "هەڵە");
                       else reloadAdmin();
                     })
