@@ -8,7 +8,7 @@ export default async function HomePage() {
   const slides = store.slides
     .filter((s) => s.active)
     .sort((a, b) => a.sortOrder - b.sortOrder);
-  const contacts = store.contacts
+  const contacts = (store.contacts ?? [])
     .filter((c) => c.active)
     .sort((a, b) => a.sortOrder - b.sortOrder);
   const brands = (store.brands ?? [])
