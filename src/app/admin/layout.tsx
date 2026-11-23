@@ -1,3 +1,5 @@
+import "./admin-page.css";
+
 export const instant = false;
 
 export default function AdminLayout({
@@ -5,5 +7,5 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return <div className="admin-root">{children}</div>;
 }

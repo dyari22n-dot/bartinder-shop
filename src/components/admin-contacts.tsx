@@ -1,16 +1,17 @@
 "use client";
 
+import { adminPostJson } from "@/lib/admin-api";
 import { reloadAdmin } from "@/lib/admin-mutate";
-import { useState, useTransition } from "react";
+import { withAdminTimeout } from "@/lib/admin-task";
+import { useState } from "react";
 import { ADMIN_KURDISH_ONLY_HINT } from "@/lib/locale-names";
 import type { ContactLink } from "@/lib/types";
 import { AdminKurdishNameFields } from "./admin-kurdish-name-fields";
-import { deleteContactAction, saveContactAction } from "@/lib/actions";
 
 type Props = { contacts: ContactLink[] };
 
 export function AdminContacts({ contacts }: Props) {
-  const [pending, start] = useTransition();
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<
     Partial<ContactLink> & { isNew?: boolean }
@@ -34,26 +35,37 @@ export function AdminContacts({ contacts }: Props) {
     });
   };
 
-  const save = () =>
-    start(async () => {
-      setError(null);
-      const res = await saveContactAction({
-        labelCkb: editing.labelCkb ?? "",
-        labelAr: editing.labelAr ?? "",
-        labelEn: editing.labelEn ?? "",
-        phone: editing.phone?.trim() || undefined,
-        href: editing.href?.trim() || undefined,
-        active: editing.active ?? true,
-        sortOrder: Number(editing.sortOrder) || sorted.length + 1,
-        id: editing.isNew ? undefined : editing.id,
-      });
+  const save = async () => {
+    setError(null);
+    setSaving(true);
+    try {
+      const res = await withAdminTimeout(
+        adminPostJson<{ ok?: boolean; error?: string }>("/api/admin/contacts", {
+          op: "save",
+          contact: {
+            labelCkb: editing.labelCkb ?? "",
+            labelAr: editing.labelAr ?? "",
+            labelEn: editing.labelEn ?? "",
+            phone: editing.phone?.trim() || undefined,
+            href: editing.href?.trim() || undefined,
+            active: editing.active ?? true,
+            sortOrder: Number(editing.sortOrder) || sorted.length + 1,
+            id: editing.isNew ? undefined : editing.id,
+          },
+        }),
+      );
       if (!res.ok) {
         setError(res.error ?? "هەڵە");
         return;
       }
       setEditing({});
       reloadAdmin();
-    });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "هەڵە");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <section className="glass mb-6 rounded-2xl p-4">
@@ -124,8 +136,8 @@ export function AdminContacts({ contacts }: Props) {
             <button
               type="button"
               className="btn-primary flex-1"
-              disabled={pending}
-              onClick={save}
+              disabled={saving}
+              onClick={() => void save()}
             >
               پاشەکەوت
             </button>
@@ -162,10 +174,14 @@ export function AdminContacts({ contacts }: Props) {
                 type="button"
                 className="text-red-300"
                 onClick={() =>
-                  start(async () => {
-                    await deleteContactAction(c.id);
-                    reloadAdmin();
-                  })
+                  void (async () => {
+                    const res = await adminPostJson<{ ok?: boolean; error?: string }>(
+                      "/api/admin/contacts",
+                      { op: "delete", id: c.id },
+                    );
+                    if (!res.ok) setError(res.error ?? "هەڵە");
+                    else reloadAdmin();
+                  })()
                 }
               >
                 سڕینەوە

@@ -1,0 +1,5 @@
+.admin-root button,
+.admin-root [role="button"] {
+  touch-action: manipulation;
+  cursor: pointer;
+}

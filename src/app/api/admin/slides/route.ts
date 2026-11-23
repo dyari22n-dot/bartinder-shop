@@ -1,0 +1,48 @@
+import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
+import { connection, NextResponse } from "next/server";
+import { formatStoreError } from "@/lib/action-errors";
+import { legacyAuthedFromJar } from "@/lib/admin-auth";
+import { deleteSlide, upsertSlide, type PromoSlideInput } from "@/lib/db";
+
+export async function POST(request: Request) {
+  await connection();
+  const jar = await cookies();
+  if (!legacyAuthedFromJar(jar)) {
+    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  }
+  try {
+    const body = (await request.json()) as
+      | { op: "save"; slide: PromoSlideInput & { id?: string } }
+      | { op: "delete"; id: string };
+
+    if (body.op === "delete") {
+      await deleteSlide(body.id);
+      revalidatePath("/");
+      revalidatePath("/admin");
+      return NextResponse.json({ ok: true });
+    }
+
+    if (body.op === "save") {
+      const s = body.slide;
+      if (!s.titleCkb?.trim()) {
+        return NextResponse.json(
+          { ok: false, error: "ناونیشانی کوردی پێویستە" },
+          { status: 400 },
+        );
+      }
+      await upsertSlide(s);
+      revalidatePath("/");
+      revalidatePath("/admin");
+      return NextResponse.json({ ok: true });
+    }
+
+    return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });
+  } catch (e) {
+    console.error("[admin/slides]", e);
+    return NextResponse.json(
+      { ok: false, error: formatStoreError(e) },
+      { status: 500 },
+    );
+  }
+}

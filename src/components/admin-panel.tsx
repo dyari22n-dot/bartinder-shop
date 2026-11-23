@@ -118,7 +118,7 @@ export function AdminPanel({
     });
 
   return (
-    <div className="mx-auto min-h-dvh max-w-lg px-4 py-8 text-white">
+    <div className="admin-root mx-auto min-h-dvh max-w-lg px-4 py-8 text-white">
       <p className="mb-3">
         <button
           type="button"

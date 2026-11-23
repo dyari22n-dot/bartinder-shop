@@ -51,7 +51,13 @@ export function AdminShell() {
       return;
     }
     setBootError(null);
-    void fetch("/api/admin/me", { credentials: "include", cache: "no-store" })
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 18_000);
+    void fetch("/api/admin/me", {
+      credentials: "include",
+      cache: "no-store",
+      signal: controller.signal,
+    })
       .then(async (res) => {
         if (!res.ok) throw new Error("api");
         return (await res.json()) as MeResponse;
@@ -69,11 +75,17 @@ export function AdminShell() {
           });
         }
         if (res.error) setBootError(res.error);
-        setReady(true);
       })
-      .catch(() => {
+      .catch((e) => {
         setAuthed(false);
-        setBootError("پەیوەندی سێرڤەر — دووبارە هەوڵ بدەرەوە");
+        setBootError(
+          e instanceof Error && e.name === "AbortError"
+            ? "سێرڤەر درەنگە — دووبارە هەوڵبدەرەوە"
+            : "پەیوەندی سێرڤەر — دووبارە هەوڵ بدەرەوە",
+        );
+      })
+      .finally(() => {
+        window.clearTimeout(timer);
         setReady(true);
       });
   }, []);
@@ -97,9 +109,19 @@ export function AdminShell() {
 
   if (!ready) {
     return (
-      <p className="flex min-h-dvh items-center justify-center text-sm text-bk-muted">
-        …
-      </p>
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 px-4 text-center text-sm text-bk-muted">
+        <p>بارکردنی ئەدمین…</p>
+        <button
+          type="button"
+          className="btn-outline text-xs"
+          onClick={() => {
+            setReady(false);
+            load();
+          }}
+        >
+          دووبارە هەوڵبدەرەوە
+        </button>
+      </div>
     );
   }
 

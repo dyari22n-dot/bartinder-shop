@@ -351,9 +351,8 @@ export function AdminCategories({ categories }: { categories: Category[] }) {
                 <button
                   type="button"
                   className="text-[10px] text-red-300"
-                  disabled={pending}
                   onClick={() =>
-                    start(async () => {
+                    void (async () => {
                       if (!confirm(`سڕینەوەی «${cat.nameCkb}»؟`)) return;
                       const res = await adminPostJson<{ ok?: boolean; error?: string }>(
                         "/api/admin/categories",

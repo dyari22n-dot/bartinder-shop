@@ -1,16 +1,14 @@
 "use client";
 
 import Image from "next/image";
+import { adminPostJson } from "@/lib/admin-api";
 import { reloadAdmin } from "@/lib/admin-mutate";
-import { useRef, useState, useTransition } from "react";
+import { withAdminTimeout } from "@/lib/admin-task";
+import { useRef, useState } from "react";
 import { ADMIN_KURDISH_ONLY_HINT } from "@/lib/locale-names";
 import type { Product, PromoSlide, PromoSlideKind } from "@/lib/types";
 import { AdminKurdishNameFields } from "./admin-kurdish-name-fields";
-import {
-  deleteSlideAction,
-  saveSlideAction,
-  uploadProductImageAction,
-} from "@/lib/actions";
+import { uploadProductImageAction } from "@/lib/actions";
 
 type Props = {
   slides: PromoSlide[];
@@ -18,7 +16,7 @@ type Props = {
 };
 
 export function AdminSlides({ slides, products }: Props) {
-  const [pending, start] = useTransition();
+  const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState<Partial<PromoSlide> & { isNew?: boolean }>(
     {},
@@ -48,37 +46,47 @@ export function AdminSlides({ slides, products }: Props) {
     if (res.ok && res.url) setEditing((s) => ({ ...s, imageUrl: res.url }));
   };
 
-  const save = () =>
-    start(async () => {
-      setError(null);
-      if (!editing.titleCkb?.trim()) {
-        setError("ناونیشانی کوردی پێویستە");
-        return;
-      }
-      const payload = {
-        kind: (editing.kind ?? "offer") as PromoSlideKind,
-        titleCkb: editing.titleCkb ?? "",
-        titleAr: editing.titleAr ?? "",
-        titleEn: editing.titleEn ?? "",
-        subtitleCkb: editing.subtitleCkb,
-        subtitleAr: editing.subtitleAr,
-        subtitleEn: editing.subtitleEn,
-        imageUrl: editing.imageUrl,
-        productId: editing.productId || undefined,
-        href: editing.href || undefined,
-        discountPercent: editing.discountPercent,
-        active: editing.active ?? true,
-        sortOrder: Number(editing.sortOrder) || 0,
-        id: editing.isNew ? undefined : editing.id,
-      };
-      const res = await saveSlideAction(payload);
+  const save = async () => {
+    setError(null);
+    if (!editing.titleCkb?.trim()) {
+      setError("ناونیشانی کوردی پێویستە");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await withAdminTimeout(
+        adminPostJson<{ ok?: boolean; error?: string }>("/api/admin/slides", {
+          op: "save",
+          slide: {
+            kind: (editing.kind ?? "offer") as PromoSlideKind,
+            titleCkb: editing.titleCkb ?? "",
+            titleAr: editing.titleAr ?? "",
+            titleEn: editing.titleEn ?? "",
+            subtitleCkb: editing.subtitleCkb,
+            subtitleAr: editing.subtitleAr,
+            subtitleEn: editing.subtitleEn,
+            imageUrl: editing.imageUrl,
+            productId: editing.productId || undefined,
+            href: editing.href || undefined,
+            discountPercent: editing.discountPercent,
+            active: editing.active ?? true,
+            sortOrder: Number(editing.sortOrder) || 0,
+            id: editing.isNew ? undefined : editing.id,
+          },
+        }),
+      );
       if (!res.ok) {
         setError(res.error ?? "هەڵە");
         return;
       }
       setEditing({});
       reloadAdmin();
-    });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "هەڵە");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <section className="glass mb-6 rounded-2xl p-4">
@@ -164,7 +172,12 @@ export function AdminSlides({ slides, products }: Props) {
             </div>
           ) : null}
           <div className="flex gap-2">
-            <button type="button" className="btn-primary flex-1" disabled={pending} onClick={save}>
+            <button
+              type="button"
+              className="btn-primary flex-1"
+              disabled={saving}
+              onClick={() => void save()}
+            >
               پاشەکەوت
             </button>
             <button
@@ -190,10 +203,14 @@ export function AdminSlides({ slides, products }: Props) {
                 type="button"
                 className="text-red-300"
                 onClick={() =>
-                  start(async () => {
-                    await deleteSlideAction(s.id);
-                    reloadAdmin();
-                  })
+                  void (async () => {
+                    const res = await adminPostJson<{ ok?: boolean; error?: string }>(
+                      "/api/admin/slides",
+                      { op: "delete", id: s.id },
+                    );
+                    if (!res.ok) setError(res.error ?? "هەڵە");
+                    else reloadAdmin();
+                  })()
                 }
               >
                 سڕینەوە
