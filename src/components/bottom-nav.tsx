@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useRef } from "react";
 import { Home, LayoutGrid, Phone, ShoppingBag, Search } from "lucide-react";
 import { useLocale } from "./locale-provider";
 import { useCart } from "@/store/cart";
@@ -15,11 +16,39 @@ const links = [
   { href: "/cart", icon: ShoppingBag, key: "cart" as const },
 ];
 
+const ADMIN_HOLD_MS = 850;
+
 export function BottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const { t } = useLocale();
   const cartCount = useCart((s) => s.count());
   const { openMenu } = useCategoryMenu();
+  const adminHoldTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const skipNextHomeNav = useRef(false);
+
+  const clearAdminHold = () => {
+    if (adminHoldTimer.current) {
+      clearTimeout(adminHoldTimer.current);
+      adminHoldTimer.current = null;
+    }
+  };
+
+  const startAdminHold = () => {
+    clearAdminHold();
+    adminHoldTimer.current = setTimeout(() => {
+      adminHoldTimer.current = null;
+      skipNextHomeNav.current = true;
+      router.push("/admin");
+    }, ADMIN_HOLD_MS);
+  };
+
+  const onHomeClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (skipNextHomeNav.current) {
+      e.preventDefault();
+      skipNextHomeNav.current = false;
+    }
+  };
 
   const labels = {
     home: t.home,
@@ -58,9 +87,19 @@ export function BottomNav() {
             );
           }
 
+          const isHome = key === "home";
+
           return (
             <li key={href}>
-              <Link href={href} className={className}>
+              <Link
+                href={href}
+                className={className}
+                onClick={isHome ? onHomeClick : undefined}
+                onPointerDown={isHome ? startAdminHold : undefined}
+                onPointerUp={isHome ? clearAdminHold : undefined}
+                onPointerLeave={isHome ? clearAdminHold : undefined}
+                onPointerCancel={isHome ? clearAdminHold : undefined}
+              >
                 <Icon className="h-5 w-5" strokeWidth={active ? 2.5 : 2} />
                 <span className="max-w-[4.5rem] truncate text-center">
                   {labels[key]}

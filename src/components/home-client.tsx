@@ -67,13 +67,10 @@ export function HomeClient({
         {featured.length === 0 ? (
           <div className="glass rounded-3xl p-6 text-center text-sm text-bk-muted">
             {locale === "ckb"
-              ? "بەرهەمەکان لە پانێڵی بەڕێوەبەر زیاد بکە."
+              ? "بەم زووانە بەرهەم زیاد دەکرێت."
               : locale === "ar"
-                ? "أضف المنتجات من لوحة الإدارة."
-                : "Add products from the admin panel."}
-            <Link href="/admin" className="mt-2 block text-bk-accent">
-              /admin
-            </Link>
+                ? "ستُضاف المنتجات قريباً."
+                : "Products coming soon."}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
