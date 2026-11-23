@@ -8,9 +8,8 @@ const MEDIA_STORE_NAME = "bartinder-shop-media";
 export function netlifyBlobsEnabled(): boolean {
   return (
     Boolean(
-      process.env.NETLIFY_BLOBS_CONTEXT?.trim() ||
-        (process.env.NETLIFY_SITE_ID?.trim() &&
-          process.env.NETLIFY_AUTH_TOKEN?.trim()),
+      process.env.NETLIFY_SITE_ID?.trim() &&
+        process.env.NETLIFY_AUTH_TOKEN?.trim(),
     )
   );
 }
@@ -19,10 +18,7 @@ export function netlifyBlobsHint(): string {
   if (!process.env.NETLIFY_SITE_ID?.trim()) {
     return "Netlify Site ID ڕێکنەخراوە";
   }
-  if (
-    !process.env.NETLIFY_AUTH_TOKEN?.trim() &&
-    !process.env.NETLIFY_BLOBS_CONTEXT?.trim()
-  ) {
+  if (!process.env.NETLIFY_AUTH_TOKEN?.trim()) {
     return "NETLIFY_AUTH_TOKEN لە Netlify Environment variables زیاد بکە";
   }
   return "Netlify Blobs چالاکە";
