@@ -369,7 +369,7 @@ export function AdminProducts({
               type="button"
               className="btn-primary flex-1 text-xs"
               disabled={pending || busyImage}
-              onClick={save}
+              onClick={() => void save()}
             >
               پاشەکەوت
             </button>

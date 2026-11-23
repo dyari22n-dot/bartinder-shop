@@ -19,8 +19,13 @@ export function formatStoreError(e: unknown): string {
       ? msg.replace(/^STORAGE_URL_ONLY:\s*/, "")
       : "Storage لە Firebase نییە — لینکی وێنە لە خانەی خوارەوە بنووسە";
   }
-  if (msg.includes("Firebase") || msg.includes("NOT_FOUND") || msg.includes("Firestore")) {
-    return "Firestore — .\scripts\sync-vercel-env.ps1 و npx vercel --prod";
+  if (
+    msg.includes("Firebase") ||
+    msg.includes("NOT_FOUND") ||
+    msg.includes("Firestore") ||
+    msg.includes("FIREBASE")
+  ) {
+    return "پاشەکەوت بۆ Firebase سەرنەکەوتی — FIREBASE_SERVICE_ACCOUNT_B64 لە Vercel چەک بکە";
   }
   if (msg.includes('"code": 404') || msg.includes('"code":404')) {
     return "Storage یان لینک — لینکی وێنە بەکاربهێنە";

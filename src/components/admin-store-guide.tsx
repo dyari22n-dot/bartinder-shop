@@ -30,14 +30,17 @@ export function AdminStoreGuide() {
           const meta = ADMIN_SECTIONS.find((s) => s.id === item.sectionId);
           return (
             <li key={item.sectionId}>
-              <button
-                type="button"
+              <a
+                href={`#${item.sectionId}`}
                 className="text-start text-white underline decoration-bk-accent/50 underline-offset-2"
-                onClick={() => scrollToAdminSection(item.sectionId)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  scrollToAdminSection(item.sectionId);
+                }}
               >
                 {meta?.step ? `${meta.step}. ` : `${i + 1}. `}
                 {item.text}
-              </button>
+              </a>
             </li>
           );
         })}

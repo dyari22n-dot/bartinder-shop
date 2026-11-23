@@ -304,7 +304,7 @@ export function AdminCategories({ categories }: { categories: Category[] }) {
               type="button"
               className="btn-primary flex-1 text-xs"
               disabled={pending || preparingImage}
-              onClick={save}
+              onClick={() => void save()}
             >
               پاشەکەوت
             </button>

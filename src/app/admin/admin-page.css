@@ -1,5 +1,14 @@
+.admin-root {
+  scroll-padding-top: 6.5rem;
+}
+
 .admin-root button,
+.admin-root a,
 .admin-root [role="button"] {
   touch-action: manipulation;
   cursor: pointer;
+}
+
+#admin-top-menu a {
+  -webkit-tap-highlight-color: rgba(255, 200, 120, 0.35);
 }
