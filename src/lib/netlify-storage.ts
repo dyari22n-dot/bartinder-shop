@@ -8,6 +8,7 @@ const NETLIFY_REGION = "eu-central-1";
 
 export function netlifyBlobsEnabled(): boolean {
   return (
+    process.env.NETLIFY_BLOBS_ENABLED === "true" ||
     process.env.NETLIFY === "true" ||
     Boolean(process.env.NETLIFY_SITE_ID || process.env.CONTEXT)
   );
