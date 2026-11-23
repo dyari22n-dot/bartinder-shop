@@ -1,21 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { Brand, Category, Product } from "@/lib/types";
+import { reloadAdmin } from "@/lib/admin-mutate";
+import { parsePriceIqdText, parsePriceUsdText } from "@/lib/price-input";
 import { formatIqd, formatUsd } from "@/lib/whatsapp";
-
-function parsePriceDigits(raw: string): number {
-  const digits = raw.replace(/\D/g, "");
-  return digits ? Number(digits) : 0;
-}
-
-function parseUsdInput(raw: string): number {
-  const cleaned = raw.replace(/[^\d.]/g, "");
-  const n = parseFloat(cleaned);
-  return Number.isFinite(n) ? n : 0;
-}
 
 async function apiProducts<T>(body: object): Promise<T> {
   const res = await fetch("/api/admin/products", {
@@ -36,7 +26,6 @@ export function AdminProducts({
   products: Product[];
   brands: Brand[];
 }) {
-  const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [busyImage, setBusyImage] = useState(false);
@@ -94,10 +83,10 @@ export function AdminProducts({
         setError("ناو + بەش پێویستە");
         return;
       }
-      const priceIqd = parsePriceDigits(priceText);
-      const priceUsd = parseUsdInput(usdText);
+      const priceIqd = parsePriceIqdText(priceText);
+      const priceUsd = parsePriceUsdText(usdText);
       if (priceIqd <= 0 && priceUsd <= 0) {
-        setError("نرخ بنووسە: IQD و/یان $");
+        setError("نرخ بنووسە (ژمارەی ئینگلیزی 123 یان عەرەبی ١٢٣)");
         return;
       }
       setBusyImage(Boolean(pendingFile));
@@ -131,7 +120,9 @@ export function AdminProducts({
         }
         setEditing({});
         setPendingFile(null);
-        router.refresh();
+        setPriceText("");
+        setUsdText("");
+        reloadAdmin();
       } catch (e) {
         setError(e instanceof Error ? e.message : "هەڵە");
       } finally {
@@ -193,29 +184,28 @@ export function AdminProducts({
               </option>
             ))}
           </select>
-          <input
-            placeholder="ناو (کوردی) *"
-            value={editing.nameCkb ?? ""}
-            onChange={(e) => setEditing((s) => ({ ...s, nameCkb: e.target.value }))}
-          />
-          <div>
-            <label className="mb-1 block text-[10px] text-bk-muted">
-              نرخ IQD (دینار)
+          <div className="rounded-lg border border-bk-accent/40 bg-bk-accent/10 p-2">
+            <label className="mb-1 block text-xs font-bold text-bk-accent">
+              نرخ IQD (دینار) *
             </label>
             <input
               type="text"
               inputMode="numeric"
-              placeholder="وەک ١٥٠٠٠"
+              autoComplete="off"
+              placeholder="15000 یان ١٥٠٠٠"
+              className="text-base font-semibold"
               value={priceText}
               onChange={(e) => {
-                const digits = e.target.value.replace(/\D/g, "");
-                setPriceText(digits);
-                setEditing((s) => ({ ...s, priceIqd: parsePriceDigits(digits) }));
+                setPriceText(e.target.value);
+                setEditing((s) => ({
+                  ...s,
+                  priceIqd: parsePriceIqdText(e.target.value),
+                }));
               }}
             />
             {priceText ? (
-              <p className="mt-1 text-[11px] font-semibold text-bk-accent">
-                {formatIqd(parsePriceDigits(priceText))}
+              <p className="mt-1 text-sm font-semibold text-bk-accent">
+                {formatIqd(parsePriceIqdText(priceText))}
               </p>
             ) : (
               <p className="mt-1 text-[10px] text-bk-muted">
@@ -224,27 +214,34 @@ export function AdminProducts({
             )}
           </div>
           <div>
-            <label className="mb-1 block text-[10px] text-bk-muted">نرخ $ (دۆلار)</label>
+            <label className="mb-1 block text-xs font-bold text-white/90">
+              نرخ $ (دۆلار)
+            </label>
             <input
               type="text"
               inputMode="decimal"
-              placeholder="وەک 12.5"
+              autoComplete="off"
+              placeholder="12 یان 12.5"
               value={usdText}
               onChange={(e) => {
-                const v = e.target.value.replace(/[^\d.]/g, "");
-                setUsdText(v);
+                setUsdText(e.target.value);
                 setEditing((s) => ({
                   ...s,
-                  priceUsd: parseUsdInput(v) || undefined,
+                  priceUsd: parsePriceUsdText(e.target.value) || undefined,
                 }));
               }}
             />
             {usdText ? (
-              <p className="mt-1 text-[11px] font-semibold text-white/90">
-                {formatUsd(parseUsdInput(usdText))}
+              <p className="mt-1 text-sm font-semibold text-white/90">
+                {formatUsd(parsePriceUsdText(usdText))}
               </p>
             ) : null}
           </div>
+          <input
+            placeholder="ناو (کوردی) *"
+            value={editing.nameCkb ?? ""}
+            onChange={(e) => setEditing((s) => ({ ...s, nameCkb: e.target.value }))}
+          />
           <div>
             <label className="mb-1 block text-[10px] text-bk-muted">
               زانیاری بەرهەم (ئارەزوومەندانە)
@@ -411,7 +408,7 @@ export function AdminProducts({
                           op: "delete",
                           id: p.id,
                         });
-                        if (res.ok) router.refresh();
+                        if (res.ok) reloadAdmin();
                       })
                     }
                   >
