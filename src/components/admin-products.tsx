@@ -95,6 +95,9 @@ export function AdminProducts({
         if (pendingFile) {
           imageUrl = await uploadImage(pendingFile);
         }
+        const name = editing.nameCkb.trim();
+        const nameAr = editing.nameAr?.trim();
+        const nameEn = editing.nameEn?.trim();
         const desc = editing.descriptionCkb?.trim();
         const res = await apiProducts<{ ok?: boolean; error?: string }>({
           op: "save",
@@ -102,9 +105,9 @@ export function AdminProducts({
             id: editing.isNew ? undefined : editing.id,
             categoryId: editing.categoryId,
             brandId: editing.brandId || undefined,
-            nameCkb: editing.nameCkb.trim(),
-            nameAr: editing.nameAr,
-            nameEn: editing.nameEn,
+            nameCkb: name,
+            nameAr: nameAr && nameAr !== name ? nameAr : undefined,
+            nameEn: nameEn && nameEn !== name ? nameEn : undefined,
             descriptionCkb: desc || undefined,
             descriptionAr: editing.descriptionAr?.trim() || desc || undefined,
             descriptionEn: editing.descriptionEn?.trim() || desc || undefined,
@@ -135,7 +138,7 @@ export function AdminProducts({
       <p className="mb-0.5 text-[10px] font-semibold text-bk-accent">هەنگاو ٣</p>
       <h2 className="mb-1 text-sm font-bold text-bk-accent">بەرهەم — خێرا</h2>
       <p className="mb-3 text-xs text-bk-muted">
-        ناو · نرخ (IQD و/یان $) · زانیاری · بەش — لە فرۆشگا هەردووکە دەردەکەون
+        تەنها ناوی کوردی بنووسە — عەرەبی/ئینگلیزی خۆکار وەک هەمان ناو دەبێت
       </p>
 
       {categories.length === 0 ? (
@@ -237,11 +240,17 @@ export function AdminProducts({
               </p>
             ) : null}
           </div>
-          <input
-            placeholder="ناو (کوردی) *"
-            value={editing.nameCkb ?? ""}
-            onChange={(e) => setEditing((s) => ({ ...s, nameCkb: e.target.value }))}
-          />
+          <div>
+            <label className="mb-1 block text-xs font-bold text-white">ناو (کوردی) *</label>
+            <input
+              placeholder="تەنها لێرە بنووسە"
+              value={editing.nameCkb ?? ""}
+              onChange={(e) => setEditing((s) => ({ ...s, nameCkb: e.target.value }))}
+            />
+            <p className="mt-1 text-[10px] text-bk-muted">
+              عەرەبی و ئینگلیزی پێویست نییە — لە فرۆشگا هەمان ناو دەردەکەوێت
+            </p>
+          </div>
           <div>
             <label className="mb-1 block text-[10px] text-bk-muted">
               زانیاری بەرهەم (ئارەزوومەندانە)
@@ -289,19 +298,22 @@ export function AdminProducts({
             className="text-[11px] text-bk-muted underline"
             onClick={() => setMoreFields((v) => !v)}
           >
-            {moreFields ? "کەمتر ▲" : "زیاتر (عربي · براند · لینک) ▼"}
+            {moreFields ? "کەمتر ▲" : "زیاتر (براند · لینک · ناوی جیاواز)
           </button>
           {moreFields ? (
             <>
+              <p className="text-[10px] text-bk-muted">
+                ناوی عەرەبی/ئینگلیزی — تەنها ئەگەر جیاواز بێت لە کوردی
+              </p>
               <input
-                placeholder="عربي"
+                placeholder="الاسم عربي (ئارەزوومەندانە)"
                 value={editing.nameAr ?? ""}
                 onChange={(e) =>
                   setEditing((s) => ({ ...s, nameAr: e.target.value }))
                 }
               />
               <input
-                placeholder="English"
+                placeholder="English (optional)"
                 value={editing.nameEn ?? ""}
                 onChange={(e) =>
                   setEditing((s) => ({ ...s, nameEn: e.target.value }))

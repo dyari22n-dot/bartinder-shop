@@ -33,11 +33,13 @@ export async function POST(request: Request) {
         );
       }
       const name = p.nameCkb.trim();
+      const ar = p.nameAr?.trim();
+      const en = p.nameEn?.trim();
       const saved = await upsertProduct({
         ...p,
         nameCkb: name,
-        nameAr: p.nameAr?.trim() || name,
-        nameEn: p.nameEn?.trim() || name,
+        nameAr: ar && ar !== name ? ar : name,
+        nameEn: en && en !== name ? en : name,
         priceIqd: Number(p.priceIqd) || 0,
         priceUsd:
           p.priceUsd != null && Number(p.priceUsd) > 0
