@@ -7,6 +7,11 @@ import {
   firestoreStoreDocId,
   getAdminFirestore,
 } from "./firebase-admin";
+import {
+  readStoreFromBlob,
+  storeBlobPrimary,
+  writeStoreToBlob,
+} from "./store-blob";
 
 const storePath = path.join(process.cwd(), "data", "store.json");
 const FIRESTORE_COLLECTION = "stores";
@@ -54,12 +59,29 @@ async function writeStoreToFirestore(data: StoreData): Promise<void> {
     );
 }
 
-/** خوێندن — Firestore ئەگەر ڕێکخراو بێت، دەیانەوە JSON پاشگەڕ */
+/** خوێندن — Blob (Vercel) یان Firestore یان data/store.json */
 export async function readRawStore(): Promise<StoreData> {
   try {
     await connection();
   } catch {
     /* ok on some runtimes */
+  }
+
+  if (storeBlobPrimary()) {
+    try {
+      const fromBlob = await readStoreFromBlob();
+      if (fromBlob) {
+        return normalizeStoreData(fromBlob);
+      }
+      const local = await readStoreFromJson();
+      await writeStoreToBlob(normalizeStoreData(local)).catch(() => undefined);
+      return local;
+    } catch (e) {
+      console.warn(
+        "[store] Blob read failed:",
+        e instanceof Error ? e.message : e,
+      );
+    }
   }
 
   if (firestoreEnabled()) {
@@ -107,6 +129,19 @@ export async function readRawStore(): Promise<StoreData> {
 export async function writeRawStore(data: StoreData): Promise<void> {
   const normalized = normalizeStoreData(data);
 
+  if (storeBlobPrimary()) {
+    try {
+      await writeStoreToBlob(normalized);
+      return;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error("[store] Blob write failed:", msg);
+      if (process.env.VERCEL) {
+        throw new Error(msg);
+      }
+    }
+  }
+
   if (firestoreEnabled()) {
     try {
       await writeStoreToFirestore(normalized);
@@ -123,7 +158,7 @@ export async function writeRawStore(data: StoreData): Promise<void> {
 
   if (process.env.VERCEL) {
     throw new Error(
-      "Firebase لە Vercel دانەنراوە — FIREBASE_SERVICE_ACCOUNT_B64 لە Vercel یان .\\scripts\\sync-vercel-env.ps1",
+      "پاشەکەوت ناکرێت — BLOB_READ_WRITE_TOKEN لە Vercel یان STORE_BACKEND=blob",
     );
   }
 

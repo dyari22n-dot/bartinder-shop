@@ -26,6 +26,9 @@ export function formatStoreError(e: unknown): string {
   ) {
     return "Firestore quota تەواو بووە — Firebase Console → Billing (Blaze) یان سبەیی دووبارە هەوڵبدەرەوە";
   }
+  if (msg.includes("BLOB_READ_WRITE_TOKEN")) {
+    return msg;
+  }
   if (msg.includes("credential لە Vercel ناگونجێت")) {
     return msg;
   }
