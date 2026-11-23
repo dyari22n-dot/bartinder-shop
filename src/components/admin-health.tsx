@@ -43,7 +43,7 @@ export function AdminHealth() {
   return (
     <p className="mb-3 text-[10px] text-bk-muted">
       <button type="button" className="text-bk-accent underline" onClick={run}>
-        پشکنینی پاشەکەوت (Vercel Blob)
+        پشکنینی پاشەکەوت
       </button>
       {line ? <span className="mt-1 block text-white">{line}</span> : null}
     </p>

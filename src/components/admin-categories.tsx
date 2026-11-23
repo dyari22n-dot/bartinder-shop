@@ -139,7 +139,7 @@ export function AdminCategories({ categories }: { categories: Category[] }) {
           });
         } catch (e) {
           setError(
-            `${e instanceof Error ? e.message : "بارکردنی فایل"} — BLOB_READ_WRITE_TOKEN لە Vercel`,
+            `${e instanceof Error ? e.message : "بارکردنی فایل"} — هەڵگرتنی وێنە لە سێرڤەر ڕێکنەخراوە`,
           );
           setSuccess(null);
           setPreparingImage(false);

@@ -8,6 +8,11 @@ import {
   readStoreFromBlob,
   writeStoreToBlob,
 } from "./store-blob";
+import {
+  netlifyBlobsEnabled,
+  readStoreFromNetlifyBlobs,
+  writeStoreToNetlifyBlobs,
+} from "./netlify-storage";
 
 const storePath = path.join(process.cwd(), "data", "store.json");
 
@@ -35,6 +40,11 @@ export async function readRawStore(): Promise<StoreData> {
     await connection();
   } catch {
     /* ok on some runtimes */
+  }
+
+  if (netlifyBlobsEnabled()) {
+    const fromBlobs = await readStoreFromNetlifyBlobs();
+    if (fromBlobs) return normalizeStoreData(fromBlobs);
   }
 
   if (vercelBlobEnabled()) {
@@ -67,6 +77,11 @@ export async function readRawStore(): Promise<StoreData> {
 export async function writeRawStore(data: StoreData): Promise<void> {
   const normalized = normalizeStoreData(data);
 
+  if (netlifyBlobsEnabled()) {
+    await writeStoreToNetlifyBlobs(normalized);
+    return;
+  }
+
   if (vercelBlobEnabled()) {
     await writeStoreToBlob(normalized);
     return;
@@ -82,10 +97,20 @@ export async function writeRawStore(data: StoreData): Promise<void> {
 }
 
 export async function syncJsonToBlob(): Promise<{ ok: boolean; message: string }> {
+  if (netlifyBlobsEnabled()) {
+    const local = await readStoreFromJson();
+    await writeStoreToNetlifyBlobs(local);
+    return { ok: true, message: "store.json → Netlify Blobs نێردرا" };
+  }
+
   if (!vercelBlobEnabled()) {
     return { ok: false, message: "BLOB_READ_WRITE_TOKEN نییە" };
   }
   const local = await readStoreFromJson();
   await writeStoreToBlob(local);
   return { ok: true, message: "store.json → Vercel Blob نێردرا" };
+}
+
+export function persistentStoreEnabled(): boolean {
+  return netlifyBlobsEnabled() || vercelBlobEnabled();
 }

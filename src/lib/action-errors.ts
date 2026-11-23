@@ -4,7 +4,7 @@ export function formatStoreError(e: unknown): string {
     return "فایل زۆر گەورەیە — وێنەی تر هەڵبژێرە یان لینک";
   }
   if (msg.includes("EROFS") || msg.includes("read-only")) {
-    return "سێرڤەر فایل نانووسێت — Vercel Blob لە Dashboard";
+    return "سێرڤەر فایل نانووسێت — cloud storage ڕێکبخە";
   }
   if (msg.startsWith("CAT_HAS_PRODUCTS:")) {
     const n = msg.split(":")[1];

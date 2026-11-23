@@ -3,7 +3,8 @@ import { connection, NextResponse } from "next/server";
 import { legacyAuthedFromJar } from "@/lib/admin-auth";
 import { getStoreForAdmin } from "@/lib/db";
 import { vercelBlobEnabled } from "@/lib/media-upload";
-import { readStoreFromBlob, writeStoreToBlob, STORE_BLOB_PATH } from "@/lib/store-blob";
+import { netlifyBlobsEnabled } from "@/lib/netlify-storage";
+import { persistentStoreEnabled, writeRawStore } from "@/lib/store-persistence";
 
 export async function GET() {
   await connection();
@@ -15,7 +16,7 @@ export async function GET() {
   const report = {
     ok: true,
     vercelBlob: vercelBlobEnabled(),
-    blobPath: STORE_BLOB_PATH,
+    netlifyBlobs: netlifyBlobsEnabled(),
     readOk: false,
     writeOk: false,
     counts: { categories: 0, products: 0, brands: 0 },
@@ -37,24 +38,20 @@ export async function GET() {
     return NextResponse.json(report);
   }
 
-  if (!report.vercelBlob) {
+  if (!persistentStoreEnabled()) {
     report.hint =
-      "Vercel → Storage → Blob → BLOB_READ_WRITE_TOKEN بۆ Production، دواتر Redeploy";
+      "هەڵگرتنی کلاود لەم سێرڤەرە چالاک نییە";
     return NextResponse.json(report);
   }
 
   try {
-    const probe = await readStoreFromBlob();
-    if (!probe) {
-      report.hint = "یەکەم پاشەکەوت لە ئەدمین Blob دروست دەکات · npm run store:blob-sync";
-      return NextResponse.json(report);
-    }
-    await writeStoreToBlob(probe);
+    const store = await getStoreForAdmin();
+    await writeRawStore(store);
     report.writeOk = true;
   } catch (e) {
     report.ok = false;
     report.error = e instanceof Error ? e.message : "write failed";
-    report.hint = "تۆکەنی Blob لە Vercel چەک بکە";
+    report.hint = "Netlify Blobs یان Blob storage چەک بکە";
   }
 
   return NextResponse.json(report);

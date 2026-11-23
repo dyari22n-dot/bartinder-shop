@@ -3,6 +3,10 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { put } from "@vercel/blob";
 import { optimizeProductImage } from "./optimize-image";
+import {
+  netlifyBlobsEnabled,
+  writeMediaToNetlifyBlobs,
+} from "./netlify-storage";
 
 export function vercelBlobEnabled(): boolean {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN?.trim());
@@ -76,6 +80,10 @@ export async function persistMediaFile(
 
   const isVideo = contentType.startsWith("video/");
 
+  if (netlifyBlobsEnabled()) {
+    return writeMediaToNetlifyBlobs(filename, data, contentType);
+  }
+
   if (vercelBlobEnabled()) {
     try {
       return await uploadVercelBlob(data, filename, contentType);
@@ -95,6 +103,7 @@ export async function persistMediaFile(
 }
 
 export function storageHint(): string {
+  if (netlifyBlobsEnabled()) return "Netlify Blobs — وێنە و ڤیدیۆ";
   if (vercelBlobEnabled()) return "Vercel Blob — وێنە و ڤیدیۆ";
   if (process.env.VERCEL) {
     return "Vercel → Storage → Blob · یان لینکی وێنە/mp4";

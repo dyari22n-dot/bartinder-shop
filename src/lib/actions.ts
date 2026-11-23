@@ -26,8 +26,7 @@ import {
 } from "./db";
 import type { StoreSettings } from "./types";
 import { firebaseAdminEnabled } from "./firebase-admin";
-import { syncJsonToBlob } from "./store-persistence";
-import { vercelBlobEnabled } from "./media-upload";
+import { persistentStoreEnabled, syncJsonToBlob } from "./store-persistence";
 import { MAX_UPLOAD_BYTES } from "./optimize-image";
 import { ingestImageUrl, saveOptimizedImageFile } from "./image-ingest";
 import { persistMediaFile, storageHint } from "./media-upload";
@@ -320,8 +319,8 @@ export async function syncBlobAction(): Promise<{
 }> {
   const authed = await checkAdmin();
   if (!authed) return { ok: false, error: "Unauthorized" };
-  if (!vercelBlobEnabled()) {
-    return { ok: false, error: "BLOB_READ_WRITE_TOKEN نییە" };
+  if (!persistentStoreEnabled()) {
+    return { ok: false, error: "پاشەکەوتی کلاود ڕێکنەخراوە" };
   }
   try {
     const res = await syncJsonToBlob();
