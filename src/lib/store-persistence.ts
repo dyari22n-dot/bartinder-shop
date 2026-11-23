@@ -41,26 +41,11 @@ export async function readRawStore(): Promise<StoreData> {
     try {
       const fromBlob = await readStoreFromBlob();
       if (fromBlob) return normalizeStoreData(fromBlob);
-      if (process.env.VERCEL) {
-        try {
-          return await readStoreFromJson();
-        } catch {
-          return normalizeStoreData({
-            categories: [],
-            products: [],
-            slides: [],
-            contacts: [],
-            brands: [],
-            settings: {},
-          });
-        }
-      }
     } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      console.error("[store] Blob read failed:", msg);
-      if (process.env.VERCEL) {
-        throw new Error(`خوێندن لە Blob: ${msg.slice(0, 80)}`);
-      }
+      console.error(
+        "[store] Blob read failed:",
+        e instanceof Error ? e.message : e,
+      );
     }
   }
 

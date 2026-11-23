@@ -34,13 +34,19 @@ async function readStreamAsText(
 }
 
 async function readRawJsonFromBlob(token: string): Promise<string | null> {
-  const result = await get(STORE_BLOB_PATH, {
-    access: "public",
-    token,
-    useCache: false,
-  });
-  if (result?.statusCode === 200 && result.stream) {
-    return readStreamAsText(result.stream);
+  try {
+    const result = await get(STORE_BLOB_PATH, {
+      access: "public",
+      token,
+      useCache: false,
+    });
+    if (result?.statusCode === 200 && result.stream) {
+      return readStreamAsText(result.stream);
+    }
+  } catch (e) {
+    if (!(e instanceof BlobNotFoundError)) {
+      console.warn("[store-blob] get failed:", e instanceof Error ? e.message : e);
+    }
   }
   try {
     const meta = await head(STORE_BLOB_PATH, { token });
@@ -49,7 +55,8 @@ async function readRawJsonFromBlob(token: string): Promise<string | null> {
     return res.text();
   } catch (e) {
     if (e instanceof BlobNotFoundError) return null;
-    throw e;
+    console.warn("[store-blob] head/fetch failed:", e instanceof Error ? e.message : e);
+    return null;
   }
 }
 
@@ -62,7 +69,8 @@ export async function readStoreFromBlob(): Promise<StoreData | null> {
     return JSON.parse(raw) as StoreData;
   } catch (e) {
     if (e instanceof BlobNotFoundError) return null;
-    throw e;
+    console.warn("[store-blob] parse failed:", e instanceof Error ? e.message : e);
+    return null;
   }
 }
 
