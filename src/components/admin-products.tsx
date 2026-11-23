@@ -298,7 +298,7 @@ export function AdminProducts({
             className="text-[11px] text-bk-muted underline"
             onClick={() => setMoreFields((v) => !v)}
           >
-            {moreFields ? "کەمتر ▲" : "زیاتر (براند · لینک · ناوی جیاواز)
+            {moreFields ? "کەمتر ▲" : "زیاتر (براند · لینک · ناوی جیاواز) ▼"}
           </button>
           {moreFields ? (
             <>
