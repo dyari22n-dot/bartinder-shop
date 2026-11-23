@@ -4,7 +4,8 @@ import { useEffect, useRef, type ReactNode } from "react";
 import Image from "next/image";
 
 function isVideo(url: string) {
-  return /\.(mp4|webm|mov)(\?|$)/i.test(url);
+  const base = url.split("?")[0];
+  return /\.(mp4|webm|mov)$/i.test(base) || base.includes("-motion.mp4");
 }
 
 function isGif(url: string) {
@@ -73,7 +74,33 @@ export function CategoryMotionStage({
   }
 
   if (lite) {
-    return <div className="flex flex-col gap-3">{children}</div>;
+    return (
+      <div className="flex flex-col gap-3">
+        <div
+          className="relative h-36 w-full overflow-hidden rounded-2xl bg-black/30"
+          aria-hidden
+        >
+          {isGif(motionUrl) ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={motionUrl}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <Image
+              src={motionUrl}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="(max-width:448px) 100vw, 448px"
+              unoptimized
+            />
+          )}
+        </div>
+        {children}
+      </div>
+    );
   }
 
   return (

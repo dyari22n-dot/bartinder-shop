@@ -25,6 +25,10 @@ export function ProductCard({ product }: { product: Product }) {
             fill
             className="object-cover"
             sizes="(max-width: 448px) 50vw, 200px"
+            unoptimized={
+              product.imageUrl.startsWith("http") ||
+              product.imageUrl.startsWith("data:")
+            }
           />
         ) : (
           <div className="flex h-full items-center justify-center bg-gradient-to-br from-bk-accent/10 to-bk-deep/40">

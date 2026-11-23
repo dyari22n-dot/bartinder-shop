@@ -121,7 +121,6 @@ export function AdminCategories({ categories }: { categories: Category[] }) {
         setSuccess(null);
         return;
       }
-      setSuccess("پاشەکەوت کرا ✓");
       const categoryId = res.category?.id ?? editing.id;
       const file = pendingMotionFile;
       if (file && categoryId) {
@@ -139,12 +138,20 @@ export function AdminCategories({ categories }: { categories: Category[] }) {
             },
           });
         } catch (e) {
-          setError(e instanceof Error ? e.message : "بارکردنی فایل");
+          setError(
+            `${e instanceof Error ? e.message : "بارکردنی فایل"} — BLOB_READ_WRITE_TOKEN لە Vercel`,
+          );
+          setSuccess(null);
           setPreparingImage(false);
           return;
         }
         setPreparingImage(false);
       }
+      setSuccess(
+        file
+          ? "پاشەکەوت کرا ✓ (ناو + وێنە/ڤیدیۆ)"
+          : "پاشەکەوت کرا ✓",
+      );
       setFilePreview(null);
       setEditing({});
       setTimeout(() => reloadAdmin(), 400);
@@ -175,10 +182,8 @@ export function AdminCategories({ categories }: { categories: Category[] }) {
   const onPickFile = (file: File) => {
     if (file.type === "image/gif" || isVideoFile(file)) {
       if (!editing.id || editing.isNew) {
-        setPendingMotionFile(file);
-        setError(
-          "ڤیدیۆ/gif پێویستی بە Storage هەیە — سەرەتا تەنها ناو پاشەکەوت بکە، دواتر لینک mp4",
-        );
+        setFilePreview(file);
+        setError(null);
         return;
       }
       start(async () => {
