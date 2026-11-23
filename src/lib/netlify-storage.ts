@@ -4,26 +4,48 @@ import type { StoreData } from "./types";
 export const NETLIFY_STORE_DATA_KEY = "shop/store.json";
 const STORE_DATA_NAME = "bartinder-shop-data";
 const MEDIA_STORE_NAME = "bartinder-shop-media";
-const NETLIFY_REGION = "eu-central-1";
 
 export function netlifyBlobsEnabled(): boolean {
   return (
-    process.env.NETLIFY_BLOBS_ENABLED === "true" ||
-    process.env.NETLIFY === "true" ||
-    Boolean(process.env.NETLIFY_SITE_ID || process.env.CONTEXT)
+    Boolean(
+      process.env.NETLIFY_BLOBS_CONTEXT?.trim() ||
+        (process.env.NETLIFY_SITE_ID?.trim() &&
+          process.env.NETLIFY_AUTH_TOKEN?.trim()),
+    )
   );
 }
 
+export function netlifyBlobsHint(): string {
+  if (!process.env.NETLIFY_SITE_ID?.trim()) {
+    return "Netlify Site ID ڕێکنەخراوە";
+  }
+  if (
+    !process.env.NETLIFY_AUTH_TOKEN?.trim() &&
+    !process.env.NETLIFY_BLOBS_CONTEXT?.trim()
+  ) {
+    return "NETLIFY_AUTH_TOKEN لە Netlify Environment variables زیاد بکە";
+  }
+  return "Netlify Blobs چالاکە";
+}
+
+function getNetlifyStore(name: string) {
+  const siteID = process.env.NETLIFY_SITE_ID?.trim();
+  const token = process.env.NETLIFY_AUTH_TOKEN?.trim();
+  return getStore(name, {
+    ...(siteID && token ? { siteID, token } : {}),
+  });
+}
+
 export async function readStoreFromNetlifyBlobs(): Promise<StoreData | null> {
-  const data = await getStore(STORE_DATA_NAME, {
-    region: NETLIFY_REGION,
-    consistency: "strong",
-  }).get(NETLIFY_STORE_DATA_KEY, { type: "json" });
+  const data = await getNetlifyStore(STORE_DATA_NAME).get(
+    NETLIFY_STORE_DATA_KEY,
+    { type: "json", consistency: "strong" },
+  );
   return data && typeof data === "object" ? (data as StoreData) : null;
 }
 
 export async function writeStoreToNetlifyBlobs(data: StoreData): Promise<void> {
-  await getStore(STORE_DATA_NAME, { region: NETLIFY_REGION }).setJSON(
+  await getNetlifyStore(STORE_DATA_NAME).setJSON(
     NETLIFY_STORE_DATA_KEY,
     data,
   );
@@ -37,7 +59,7 @@ export async function writeMediaToNetlifyBlobs(
   const key = `shop/${filename}`;
   const bytes = Uint8Array.from(data);
   const body = new Blob([bytes], { type: contentType });
-  await getStore(MEDIA_STORE_NAME, { region: NETLIFY_REGION }).set(key, body, {
+  await getNetlifyStore(MEDIA_STORE_NAME).set(key, body, {
     metadata: { contentType },
   });
   return `/api/media/${encodeURIComponent(filename)}`;
@@ -46,7 +68,7 @@ export async function writeMediaToNetlifyBlobs(
 export async function readMediaFromNetlifyBlobs(
   filename: string,
 ): Promise<{ data: ArrayBuffer; contentType: string } | null> {
-  const store = getStore(MEDIA_STORE_NAME, { region: NETLIFY_REGION });
+  const store = getNetlifyStore(MEDIA_STORE_NAME);
   const entry = await store.getMetadata(`shop/${filename}`, {
     consistency: "strong",
   });

@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { put } from "@vercel/blob";
 import { optimizeProductImage } from "./optimize-image";
 import {
+  netlifyBlobsHint,
   netlifyBlobsEnabled,
   writeMediaToNetlifyBlobs,
 } from "./netlify-storage";
@@ -103,6 +104,9 @@ export async function persistMediaFile(
 }
 
 export function storageHint(): string {
+  if (process.env.NETLIFY_SITE_ID && !netlifyBlobsEnabled()) {
+    return netlifyBlobsHint();
+  }
   if (netlifyBlobsEnabled()) return "Netlify Blobs — وێنە و ڤیدیۆ";
   if (vercelBlobEnabled()) return "Vercel Blob — وێنە و ڤیدیۆ";
   if (process.env.VERCEL) {

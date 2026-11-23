@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { legacyAuthedFromJar } from "@/lib/admin-auth";
 import { getStoreForAdmin } from "@/lib/db";
 import { vercelBlobEnabled } from "@/lib/media-upload";
-import { netlifyBlobsEnabled } from "@/lib/netlify-storage";
+import { netlifyBlobsEnabled, netlifyBlobsHint } from "@/lib/netlify-storage";
 import { persistentStoreEnabled } from "@/lib/store-persistence";
 
 export async function GET() {
@@ -29,8 +29,7 @@ export async function GET() {
 
   if (!persistentStoreEnabled()) {
     body.ok = false;
-    body.hint =
-      "پاشەکەوتی کلاود ڕێکنەخراوە";
+    body.hint = netlifyBlobsHint();
     return NextResponse.json(body);
   }
 
