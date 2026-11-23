@@ -151,6 +151,39 @@ body {
   backdrop-filter: blur(18px);
 }
 
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+@media (max-width: 640px) {
+  .glass--nav,
+  .glass--header {
+    backdrop-filter: none;
+    background: linear-gradient(
+      145deg,
+      rgba(26, 14, 8, 0.96),
+      rgba(16, 8, 5, 0.94)
+    );
+  }
+
+  .glass {
+    backdrop-filter: none;
+  }
+
+  .app-backdrop__splash {
+    filter: blur(28px);
+    animation: none;
+    opacity: 0.85;
+  }
+
+  .scroll-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    will-change: auto;
+  }
+}
+
 input,
 select,
 textarea {

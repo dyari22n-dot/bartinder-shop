@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { cache } from "react";
 import { readRawStore, writeRawStore } from "./store-persistence";
 import type {
   Brand,
@@ -12,9 +13,7 @@ import type {
 import { slugifyLabel } from "./slug";
 import { resolveCategoryMotionUrl } from "./motion-url";
 
-async function readStore(): Promise<StoreData> {
-  return readRawStore();
-}
+const readStore = cache(async (): Promise<StoreData> => readRawStore());
 
 async function writeStore(data: StoreData): Promise<void> {
   await writeRawStore(data);
@@ -23,6 +22,15 @@ async function writeStore(data: StoreData): Promise<void> {
 async function enrichCategoryMotion(categories: Category[]): Promise<Category[]> {
   return Promise.all(
     categories.map(async (cat) => {
+      const base = cat.motionMediaUrl?.split("?")[0];
+      if (
+        base &&
+        (base.startsWith("http") ||
+          base.startsWith("data:") ||
+          base.startsWith("blob:"))
+      ) {
+        return cat;
+      }
       const motionMediaUrl = await resolveCategoryMotionUrl(cat);
       if (!motionMediaUrl) return cat;
       return { ...cat, motionMediaUrl };
@@ -30,14 +38,14 @@ async function enrichCategoryMotion(categories: Category[]): Promise<Category[]>
   );
 }
 
-export async function getStore(): Promise<StoreData> {
+export const getStore = cache(async (): Promise<StoreData> => {
   const store = await readStore();
   if (!store.slides) store.slides = [];
   if (!store.contacts) store.contacts = [];
   if (!store.brands) store.brands = [];
   store.categories = await enrichCategoryMotion(store.categories);
   return store;
-}
+});
 
 /** بەبێ enrich — بۆ ئەدمین وەک bootstrap */
 export async function getStoreForAdmin(): Promise<StoreData> {

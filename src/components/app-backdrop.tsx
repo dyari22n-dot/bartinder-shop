@@ -1,18 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import type { StoreSettings } from "@/lib/types";
-import { loadStoreAction } from "@/lib/actions";
 
 /** پاشبنەی بنەڕەت + بەشی سەرەوە لەگەڵ وێنەی جووڵاو (ئەگەر هەبێت) */
-export function AppBackdrop() {
-  const [settings, setSettings] = useState<StoreSettings>({});
-
-  useEffect(() => {
-    void loadStoreAction().then((store) => setSettings(store.settings ?? {}));
-  }, []);
-
+export function AppBackdrop({ settings }: { settings: StoreSettings }) {
   const motionUrl = settings.motionBackgroundUrl;
   const isGif = motionUrl?.toLowerCase().endsWith(".gif");
 

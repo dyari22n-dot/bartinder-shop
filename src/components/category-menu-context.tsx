@@ -8,7 +8,6 @@ import {
   type ReactNode,
 } from "react";
 import type { Category } from "@/lib/types";
-import { loadStoreAction } from "@/lib/actions";
 import { CategoryMenuDrawer } from "./category-menu-drawer";
 
 type Ctx = {
@@ -20,22 +19,17 @@ type Ctx = {
 
 const CategoryMenuContext = createContext<Ctx | null>(null);
 
-export function CategoryMenuProvider({ children }: { children: ReactNode }) {
+export function CategoryMenuProvider({
+  children,
+  initialCategories = [],
+}: {
+  children: ReactNode;
+  initialCategories?: Category[];
+}) {
   const [open, setOpen] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  const [categories] = useState<Category[]>(initialCategories);
 
-  const ensureCategories = useCallback(async () => {
-    if (loaded) return;
-    const store = await loadStoreAction();
-    setCategories(store.categories);
-    setLoaded(true);
-  }, [loaded]);
-
-  const openMenu = useCallback(() => {
-    void ensureCategories();
-    setOpen(true);
-  }, [ensureCategories]);
+  const openMenu = useCallback(() => setOpen(true), []);
 
   const closeMenu = useCallback(() => setOpen(false), []);
 

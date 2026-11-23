@@ -14,7 +14,6 @@ import { HomeHeroBanner } from "./home-hero-banner";
 import { HomePromoCarousel } from "./home-promo-carousel";
 import { HomeCategorySections } from "./home-category-sections";
 import type { PromoSlide } from "@/lib/types";
-import { ScrollReveal } from "./scroll-reveal";
 import { HomeContactSection } from "./home-contact-section";
 import { HomeBrandsSection } from "./home-brands-section";
 import { ShopperHints } from "./shopper-hints";
@@ -56,14 +55,12 @@ export function HomeClient({
       <HomeCategorySections categories={categories} products={products} />
 
       <section>
-        <ScrollReveal>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-base font-semibold text-white">{t.bestSellers}</h2>
-          <Link href="/categories" className="text-xs text-bk-accent">
+          <Link href="/categories" className="text-xs text-bk-accent" prefetch>
             {t.categories}
           </Link>
         </div>
-        </ScrollReveal>
         {featured.length === 0 ? (
           <div className="glass rounded-3xl p-6 text-center text-sm text-bk-muted">
             {locale === "ckb"
@@ -74,10 +71,8 @@ export function HomeClient({
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
-            {featured.map((p, i) => (
-              <ScrollReveal key={p.id} delayMs={50 + i * 80}>
-                <ProductCard product={p} />
-              </ScrollReveal>
+            {featured.map((p) => (
+              <ProductCard key={p.id} product={p} />
             ))}
           </div>
         )}

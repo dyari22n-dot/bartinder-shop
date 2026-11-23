@@ -6,7 +6,7 @@ import "./globals.css";
 import { brand } from "@/lib/brand";
 import { publicSiteUrl } from "@/lib/site-url";
 import { LocaleProvider } from "@/components/locale-provider";
-import { CategoryMenuProvider } from "@/components/category-menu-context";
+import { CategoryMenuRoot } from "@/components/category-menu-root";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -50,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ckb" dir="rtl" className={`${geistSans.variable} h-full`}>
       <body className="min-h-full antialiased">
         <LocaleProvider>
-          <CategoryMenuProvider>{children}</CategoryMenuProvider>
+          <CategoryMenuRoot>{children}</CategoryMenuRoot>
         </LocaleProvider>
       </body>
     </html>

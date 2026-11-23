@@ -23,7 +23,7 @@ export function CategoryMenuDrawer({
     <div className="fixed inset-0 z-50 mx-auto max-w-md">
       <button
         type="button"
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/70"
         aria-label="Close"
         onClick={onClose}
       />

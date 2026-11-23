@@ -14,9 +14,12 @@ function isGif(url: string) {
 export function CategoryMotionStage({
   motionUrl,
   children,
+  /** ماڵەوە — بێ وێنەی پاشبنەی قورس */
+  lite = false,
 }: {
   motionUrl?: string;
   children: ReactNode;
+  lite?: boolean;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -40,7 +43,7 @@ export function CategoryMotionStage({
     return () => observer.disconnect();
   }, [motionUrl]);
 
-  if (!motionUrl) {
+  if (!motionUrl || lite) {
     return <div className="flex flex-col gap-3">{children}</div>;
   }
 
@@ -61,8 +64,7 @@ export function CategoryMotionStage({
             muted
             loop
             playsInline
-            autoPlay
-            preload="auto"
+            preload="metadata"
           />
         </div>
         <div className="flex flex-col gap-3">{children}</div>

@@ -31,7 +31,7 @@ export function HomeCategorySections({
         return (
           <ScrollReveal key={cat.id}>
             <CategorySectionShell>
-            <CategoryMotionStage motionUrl={cat.motionMediaUrl}>
+            <CategoryMotionStage motionUrl={cat.motionMediaUrl} lite>
             <CategorySectionTitle sortOrder={cat.sortOrder}>{name}</CategorySectionTitle>
             {catProducts.length === 0 ? (
               <p className="text-xs text-bk-muted">
@@ -43,15 +43,14 @@ export function HomeCategorySections({
               </p>
             ) : (
               <div className="grid grid-cols-2 gap-3">
-                {catProducts.slice(0, 4).map((p, i) => (
-                  <ScrollReveal key={p.id} delayMs={70 + i * 90}>
-                    <ProductCard product={p} />
-                  </ScrollReveal>
+                {catProducts.slice(0, 4).map((p) => (
+                  <ProductCard key={p.id} product={p} />
                 ))}
               </div>
             )}
             <Link
               href={`/category/${cat.slug}`}
+              prefetch
               className="text-xs font-medium text-bk-accent"
             >
               {locale === "ckb"

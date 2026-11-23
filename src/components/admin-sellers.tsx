@@ -81,7 +81,7 @@ export function AdminSellers({ logins: initial }: Props) {
       <h2 className="mb-2 text-sm font-bold text-bk-accent">فرۆشیارانی تر</h2>
       <p className="mb-3 text-xs text-bk-muted">
         ناو + وشەی نهێنی · چوونەژوورەوە لە{" "}
-        <strong className="text-white">ماڵەوە (دەستی درێژ — ~١ چرکە)</strong> · خاوەن: ناو بەتاڵ +{" "}
+        <strong className="text-white">لۆگۆی سەرەوە (دەستی درێژ ~١ چرکە)</strong> · خاوەن: ناو بەتاڵ +{" "}
         <strong className="text-white">bartender2026</strong>
       </p>
       <ul className="mb-3 space-y-1 text-xs">

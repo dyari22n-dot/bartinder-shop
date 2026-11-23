@@ -18,6 +18,7 @@ export function CategoryNavLink({
   return (
     <Link
       href={`/category/${cat.slug}`}
+      prefetch
       onClick={onNavigate}
       className="category-nav-link flex items-center gap-3 rounded-2xl px-3 py-3.5 text-sm font-medium text-white transition hover:bg-bk-accent/10"
     >
