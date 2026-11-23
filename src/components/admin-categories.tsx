@@ -3,7 +3,10 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useState, useTransition } from "react";
+import { reloadAdmin } from "@/lib/admin-mutate";
+import { ADMIN_KURDISH_ONLY_HINT } from "@/lib/locale-names";
 import type { Category } from "@/lib/types";
+import { AdminKurdishNameFields } from "./admin-kurdish-name-fields";
 async function apiCategories<T>(body: object): Promise<T> {
   const res = await fetch("/api/admin/categories", {
     method: "POST",
@@ -24,6 +27,7 @@ export function AdminCategories({ categories }: { categories: Category[] }) {
   const [pendingMotionFile, setPendingMotionFile] = useState<File | null>(null);
   const [preparingImage, setPreparingImage] = useState(false);
   const [previewObjectUrl, setPreviewObjectUrl] = useState<string | null>(null);
+  const [moreNames, setMoreNames] = useState(false);
 
   useEffect(
     () => () => {
@@ -47,6 +51,7 @@ export function AdminCategories({ categories }: { categories: Category[] }) {
   const showForm = Boolean(editing.isNew || editing.id);
 
   const startNew = () => {
+    setMoreNames(false);
     setFilePreview(null);
     setEditing({
       isNew: true,
@@ -79,7 +84,7 @@ export function AdminCategories({ categories }: { categories: Category[] }) {
         ids: ordered.map((c) => c.id),
       });
       if (!res.ok) setError(res.error ?? "هەڵە");
-      else window.location.reload();
+      else reloadAdmin();
     });
   };
 
@@ -94,6 +99,10 @@ export function AdminCategories({ categories }: { categories: Category[] }) {
   const save = () =>
     start(async () => {
       setError(null);
+      if (!editing.nameCkb?.trim()) {
+        setError("ناوی کوردی پێویستە");
+        return;
+      }
       const res = await apiCategories<{
         ok?: boolean;
         error?: string;
@@ -138,7 +147,7 @@ export function AdminCategories({ categories }: { categories: Category[] }) {
       }
       setFilePreview(null);
       setEditing({});
-      window.location.reload();
+      reloadAdmin();
     });
 
   const isVideoFile = (file: File) =>
@@ -194,7 +203,7 @@ export function AdminCategories({ categories }: { categories: Category[] }) {
       <p className="mb-0.5 text-[10px] font-semibold text-bk-accent">هەنگاو ١</p>
       <h2 className="mb-2 text-sm font-bold text-bk-accent">بەشەکان</h2>
       <p className="mb-3 text-xs text-bk-muted">
-        گالەری: تاوەکو ~٨٠MB — سێرڤەر خۆی بچووک دەکات · ڤیدیۆ = لینک mp4
+        {ADMIN_KURDISH_ONLY_HINT} · گالەری ~٨٠MB
       </p>
       {error ? <p className="mb-2 text-xs text-red-300">{error}</p> : null}
 
@@ -204,26 +213,22 @@ export function AdminCategories({ categories }: { categories: Category[] }) {
 
       {showForm ? (
         <div className="mb-4 flex flex-col gap-2 rounded-xl border border-white/10 p-3">
-          <input
-            placeholder="ناو (کوردی) *"
-            value={editing.nameCkb ?? ""}
-            onChange={(e) =>
-              setEditing((s) => ({ ...s, nameCkb: e.target.value }))
+          <AdminKurdishNameFields
+            values={{
+              ckb: editing.nameCkb ?? "",
+              ar: editing.nameAr,
+              en: editing.nameEn,
+            }}
+            onChange={(p) =>
+              setEditing((s) => ({
+                ...s,
+                ...(p.ckb !== undefined ? { nameCkb: p.ckb } : {}),
+                ...(p.ar !== undefined ? { nameAr: p.ar } : {}),
+                ...(p.en !== undefined ? { nameEn: p.en } : {}),
+              }))
             }
-          />
-          <input
-            placeholder="عربي"
-            value={editing.nameAr ?? ""}
-            onChange={(e) =>
-              setEditing((s) => ({ ...s, nameAr: e.target.value }))
-            }
-          />
-          <input
-            placeholder="English"
-            value={editing.nameEn ?? ""}
-            onChange={(e) =>
-              setEditing((s) => ({ ...s, nameEn: e.target.value }))
-            }
+            showMore={moreNames}
+            onToggleMore={() => setMoreNames((v) => !v)}
           />
           {editing.motionMediaUrl || previewObjectUrl ? (
             <div className="relative h-24 w-full overflow-hidden rounded-xl bg-black/40">
@@ -340,7 +345,7 @@ export function AdminCategories({ categories }: { categories: Category[] }) {
                         id: cat.id,
                       });
                       if (!res.ok) setError(res.error ?? "هەڵە");
-                      else window.location.reload();
+                      else reloadAdmin();
                     })
                   }
                 >

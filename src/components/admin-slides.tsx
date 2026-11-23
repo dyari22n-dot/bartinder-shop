@@ -3,7 +3,9 @@
 import Image from "next/image";
 import { reloadAdmin } from "@/lib/admin-mutate";
 import { useRef, useState, useTransition } from "react";
+import { ADMIN_KURDISH_ONLY_HINT } from "@/lib/locale-names";
 import type { Product, PromoSlide, PromoSlideKind } from "@/lib/types";
+import { AdminKurdishNameFields } from "./admin-kurdish-name-fields";
 import {
   deleteSlideAction,
   saveSlideAction,
@@ -21,10 +23,13 @@ export function AdminSlides({ slides, products }: Props) {
   const [editing, setEditing] = useState<Partial<PromoSlide> & { isNew?: boolean }>(
     {},
   );
+  const [error, setError] = useState<string | null>(null);
+  const [moreNames, setMoreNames] = useState(false);
 
   const showForm = Boolean(editing.isNew || editing.id);
 
-  const startNew = () =>
+  const startNew = () => {
+    setMoreNames(false);
     setEditing({
       isNew: true,
       kind: "offer",
@@ -34,6 +39,7 @@ export function AdminSlides({ slides, products }: Props) {
       active: true,
       sortOrder: slides.length + 1,
     });
+  };
 
   const uploadSlideImage = async (file: File) => {
     const formData = new FormData();
@@ -44,6 +50,11 @@ export function AdminSlides({ slides, products }: Props) {
 
   const save = () =>
     start(async () => {
+      setError(null);
+      if (!editing.titleCkb?.trim()) {
+        setError("ناونیشانی کوردی پێویستە");
+        return;
+      }
       const payload = {
         kind: (editing.kind ?? "offer") as PromoSlideKind,
         titleCkb: editing.titleCkb ?? "",
@@ -60,7 +71,11 @@ export function AdminSlides({ slides, products }: Props) {
         sortOrder: Number(editing.sortOrder) || 0,
         id: editing.isNew ? undefined : editing.id,
       };
-      await saveSlideAction(payload);
+      const res = await saveSlideAction(payload);
+      if (!res.ok) {
+        setError(res.error ?? "هەڵە");
+        return;
+      }
       setEditing({});
       reloadAdmin();
     });
@@ -70,8 +85,9 @@ export function AdminSlides({ slides, products }: Props) {
       <p className="mb-0.5 text-[10px] font-semibold text-bk-accent">هەنگاو ٥</p>
       <h2 className="mb-2 text-sm font-bold text-bk-accent">سلاید (ئۆفەر / داشکاندن)</h2>
       <p className="mb-3 text-xs text-bk-muted">
-        لە سەرەوەی سەرەکی — بە slide دەجوڵێت.
+        {ADMIN_KURDISH_ONLY_HINT} · لە سەرەوەی سەرەکی دەجوڵێت
       </p>
+      {error ? <p className="mb-2 text-xs text-red-300">{error}</p> : null}
       <button type="button" className="btn-outline mb-3 w-full" onClick={startNew}>
         + سلایدی نوێ
       </button>
@@ -88,20 +104,23 @@ export function AdminSlides({ slides, products }: Props) {
             <option value="discount">داشکاندن</option>
             <option value="product">بەرهەم</option>
           </select>
-          <input
-            placeholder="ناونیشان (کوردی)"
-            value={editing.titleCkb ?? ""}
-            onChange={(e) => setEditing((s) => ({ ...s, titleCkb: e.target.value }))}
-          />
-          <input
-            placeholder="العنوان عربي"
-            value={editing.titleAr ?? ""}
-            onChange={(e) => setEditing((s) => ({ ...s, titleAr: e.target.value }))}
-          />
-          <input
-            placeholder="English title"
-            value={editing.titleEn ?? ""}
-            onChange={(e) => setEditing((s) => ({ ...s, titleEn: e.target.value }))}
+          <AdminKurdishNameFields
+            ckbPlaceholder="ناونیشان (کوردی) *"
+            values={{
+              ckb: editing.titleCkb ?? "",
+              ar: editing.titleAr,
+              en: editing.titleEn,
+            }}
+            onChange={(p) =>
+              setEditing((s) => ({
+                ...s,
+                ...(p.ckb !== undefined ? { titleCkb: p.ckb } : {}),
+                ...(p.ar !== undefined ? { titleAr: p.ar } : {}),
+                ...(p.en !== undefined ? { titleEn: p.en } : {}),
+              }))
+            }
+            showMore={moreNames}
+            onToggleMore={() => setMoreNames((v) => !v)}
           />
           <input
             type="number"

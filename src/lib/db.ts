@@ -10,6 +10,7 @@ import type {
   StoreData,
   StoreSettings,
 } from "./types";
+import { optSubtitle, triLabel, triName, triTitle } from "./locale-names";
 import { slugifyLabel } from "./slug";
 import { resolveCategoryMotionUrl } from "./motion-url";
 
@@ -93,18 +94,27 @@ export type ProductInput = Omit<Product, "id" | "createdAt">;
 export async function upsertProduct(
   input: ProductInput & { id?: string },
 ): Promise<Product> {
+  const names = triName(input.nameCkb, input.nameAr, input.nameEn);
+  const desc = input.descriptionCkb?.trim();
+  const body: ProductInput = {
+    ...input,
+    ...names,
+    descriptionCkb: desc,
+    descriptionAr: input.descriptionAr?.trim() || desc || names.nameAr,
+    descriptionEn: input.descriptionEn?.trim() || desc || names.nameEn,
+  };
   const store = await readStore();
   const now = new Date().toISOString();
   if (input.id) {
     const idx = store.products.findIndex((p) => p.id === input.id);
     if (idx === -1) throw new Error("Product not found");
-    const updated: Product = { ...store.products[idx], ...input, id: input.id };
+    const updated: Product = { ...store.products[idx], ...body, id: input.id };
     store.products[idx] = updated;
     await writeStore(store);
     return updated;
   }
   const created: Product = {
-    ...input,
+    ...body,
     id: randomUUID(),
     createdAt: now,
   };
@@ -138,18 +148,25 @@ export type PromoSlideInput = Omit<PromoSlide, "id">;
 export async function upsertSlide(
   input: PromoSlideInput & { id?: string },
 ): Promise<PromoSlide> {
+  const titles = triTitle(input.titleCkb, input.titleAr, input.titleEn);
+  const sub = optSubtitle(
+    input.subtitleCkb,
+    input.subtitleAr,
+    input.subtitleEn,
+  );
+  const body: PromoSlideInput = { ...input, ...titles, ...sub };
   const store = await readStore();
   if (!store.slides) store.slides = [];
   if (input.id) {
     const idx = store.slides.findIndex((s) => s.id === input.id);
     if (idx === -1) throw new Error("Slide not found");
-    const updated: PromoSlide = { ...store.slides[idx], ...input, id: input.id };
+    const updated: PromoSlide = { ...store.slides[idx], ...body, id: input.id };
     store.slides[idx] = updated;
     await writeStore(store);
     return updated;
   }
   const created: PromoSlide = {
-    ...input,
+    ...body,
     id: randomUUID(),
   };
   store.slides.push(created);
@@ -168,17 +185,19 @@ export type ContactLinkInput = Omit<ContactLink, "id">;
 export async function upsertContact(
   input: ContactLinkInput & { id?: string },
 ): Promise<ContactLink> {
+  const labels = triLabel(input.labelCkb, input.labelAr, input.labelEn);
+  const body: ContactLinkInput = { ...input, ...labels };
   const store = await readStore();
   if (!store.contacts) store.contacts = [];
   if (input.id) {
     const idx = store.contacts.findIndex((c) => c.id === input.id);
     if (idx === -1) throw new Error("Contact not found");
-    const updated: ContactLink = { ...store.contacts[idx], ...input, id: input.id };
+    const updated: ContactLink = { ...store.contacts[idx], ...body, id: input.id };
     store.contacts[idx] = updated;
     await writeStore(store);
     return updated;
   }
-  const created: ContactLink = { ...input, id: randomUUID() };
+  const created: ContactLink = { ...body, id: randomUUID() };
   store.contacts.push(created);
   await writeStore(store);
   return created;
@@ -195,13 +214,14 @@ export type BrandInput = Omit<Brand, "id" | "slug"> & { slug?: string };
 export async function upsertBrand(
   input: BrandInput & { id?: string },
 ): Promise<Brand> {
+  const names = triName(input.nameCkb, input.nameAr, input.nameEn);
   const store = await readStore();
   if (!store.brands) store.brands = [];
   const slug =
     input.slug?.trim() ||
-    slugifyLabel(input.nameEn || input.nameCkb, `brand-${randomUUID().slice(0, 8)}`);
+    slugifyLabel(names.nameEn || names.nameCkb, `brand-${randomUUID().slice(0, 8)}`);
   const { slug: _s, ...rest } = input;
-  const body = { ...rest, slug, categoryIds: input.categoryIds ?? [] };
+  const body = { ...rest, ...names, slug, categoryIds: input.categoryIds ?? [] };
 
   if (input.id) {
     const idx = store.brands.findIndex((b) => b.id === input.id);
@@ -239,18 +259,19 @@ export type CategoryInput = Pick<
 export async function upsertCategory(
   input: CategoryInput & { id?: string },
 ): Promise<Category> {
+  const names = triName(input.nameCkb, input.nameAr, input.nameEn);
   const store = await readStore();
   const slug =
     input.slug?.trim() ||
-    slugifyLabel(input.nameEn || input.nameCkb, `cat-${randomUUID().slice(0, 8)}`);
+    slugifyLabel(names.nameEn || names.nameCkb, `cat-${randomUUID().slice(0, 8)}`);
+  const merged = { ...input, ...names, slug };
 
   if (input.id) {
     const idx = store.categories.findIndex((c) => c.id === input.id);
     if (idx === -1) throw new Error("Category not found");
     const updated: Category = {
       ...store.categories[idx],
-      ...input,
-      slug,
+      ...merged,
       id: input.id,
     };
     store.categories[idx] = updated;
@@ -268,9 +289,9 @@ export async function upsertCategory(
   const created: Category = {
     id,
     slug,
-    nameCkb: input.nameCkb,
-    nameAr: input.nameAr,
-    nameEn: input.nameEn,
+    nameCkb: names.nameCkb,
+    nameAr: names.nameAr,
+    nameEn: names.nameEn,
     motionMediaUrl: input.motionMediaUrl,
     sortOrder,
   };

@@ -3,7 +3,9 @@
 import Image from "next/image";
 import { reloadAdmin } from "@/lib/admin-mutate";
 import { useRef, useState, useTransition } from "react";
+import { ADMIN_KURDISH_ONLY_HINT } from "@/lib/locale-names";
 import type { Brand, Category } from "@/lib/types";
+import { AdminKurdishNameFields } from "./admin-kurdish-name-fields";
 import {
   deleteBrandAction,
   saveBrandAction,
@@ -23,21 +25,24 @@ export function AdminBrands({
   const [editing, setEditing] = useState<Partial<Brand> & { isNew?: boolean }>(
     {},
   );
+  const [moreNames, setMoreNames] = useState(false);
 
   const sorted = [...brands].sort((a, b) => a.sortOrder - b.sortOrder);
   const showForm = Boolean(editing.isNew || editing.id);
   const selectedCats = new Set(editing.categoryIds ?? []);
 
-  const startNew = () =>
+  const startNew = () => {
+    setMoreNames(false);
     setEditing({
       isNew: true,
       nameCkb: "",
       nameAr: "",
       nameEn: "",
-      categoryIds: ["coffee-beans"],
+      categoryIds: categories[0]?.id ? [categories[0].id] : [],
       active: true,
       sortOrder: sorted.length + 1,
     });
+  };
 
   const toggleCategory = (id: string) => {
     const next = new Set(editing.categoryIds ?? []);
@@ -56,6 +61,14 @@ export function AdminBrands({
   const save = () =>
     start(async () => {
       setError(null);
+      if (!editing.nameCkb?.trim()) {
+        setError("ناوی کوردی پێویستە");
+        return;
+      }
+      if ((editing.categoryIds ?? []).length === 0) {
+        setError("لانیکەم یەک بەش هەڵبژێرە");
+        return;
+      }
       const res = await saveBrandAction({
         nameCkb: editing.nameCkb ?? "",
         nameAr: editing.nameAr ?? "",
@@ -80,7 +93,7 @@ export function AdminBrands({
       <p className="mb-0.5 text-[10px] font-semibold text-bk-accent">هەنگاو ٢</p>
       <h2 className="mb-2 text-sm font-bold text-bk-accent">براندەکان</h2>
       <p className="mb-3 text-xs text-bk-muted">
-        فلتەر بۆ قاوە و بەشەکان — کڕیار لە /brands دەبینێت.
+        {ADMIN_KURDISH_ONLY_HINT} · لانیکەم یەک بەش هەڵبژێرە
       </p>
       {error ? <p className="mb-2 text-xs text-red-300">{error}</p> : null}
       <button type="button" className="btn-outline mb-3 w-full" onClick={startNew}>
@@ -89,26 +102,22 @@ export function AdminBrands({
 
       {showForm ? (
         <div className="mb-4 flex flex-col gap-2 rounded-xl border border-white/10 p-3">
-          <input
-            placeholder="ناو (کوردی) *"
-            value={editing.nameCkb ?? ""}
-            onChange={(e) =>
-              setEditing((s) => ({ ...s, nameCkb: e.target.value }))
+          <AdminKurdishNameFields
+            values={{
+              ckb: editing.nameCkb ?? "",
+              ar: editing.nameAr,
+              en: editing.nameEn,
+            }}
+            onChange={(p) =>
+              setEditing((s) => ({
+                ...s,
+                ...(p.ckb !== undefined ? { nameCkb: p.ckb } : {}),
+                ...(p.ar !== undefined ? { nameAr: p.ar } : {}),
+                ...(p.en !== undefined ? { nameEn: p.en } : {}),
+              }))
             }
-          />
-          <input
-            placeholder="عربي"
-            value={editing.nameAr ?? ""}
-            onChange={(e) =>
-              setEditing((s) => ({ ...s, nameAr: e.target.value }))
-            }
-          />
-          <input
-            placeholder="English"
-            value={editing.nameEn ?? ""}
-            onChange={(e) =>
-              setEditing((s) => ({ ...s, nameEn: e.target.value }))
-            }
+            showMore={moreNames}
+            onToggleMore={() => setMoreNames((v) => !v)}
           />
           <input
             placeholder="slug (ئارەزوومەندانە)"

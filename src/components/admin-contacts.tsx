@@ -2,7 +2,9 @@
 
 import { reloadAdmin } from "@/lib/admin-mutate";
 import { useState, useTransition } from "react";
+import { ADMIN_KURDISH_ONLY_HINT } from "@/lib/locale-names";
 import type { ContactLink } from "@/lib/types";
+import { AdminKurdishNameFields } from "./admin-kurdish-name-fields";
 import { deleteContactAction, saveContactAction } from "@/lib/actions";
 
 type Props = { contacts: ContactLink[] };
@@ -13,11 +15,13 @@ export function AdminContacts({ contacts }: Props) {
   const [editing, setEditing] = useState<
     Partial<ContactLink> & { isNew?: boolean }
   >({});
+  const [moreNames, setMoreNames] = useState(false);
 
   const sorted = [...contacts].sort((a, b) => a.sortOrder - b.sortOrder);
   const showForm = Boolean(editing.isNew || editing.id);
 
-  const startNew = () =>
+  const startNew = () => {
+    setMoreNames(false);
     setEditing({
       isNew: true,
       labelCkb: "",
@@ -28,6 +32,7 @@ export function AdminContacts({ contacts }: Props) {
       active: true,
       sortOrder: sorted.length + 1,
     });
+  };
 
   const save = () =>
     start(async () => {
@@ -55,8 +60,7 @@ export function AdminContacts({ contacts }: Props) {
       <p className="mb-0.5 text-[10px] font-semibold text-bk-accent">هەنگاو ٤</p>
       <h2 className="mb-2 text-sm font-bold text-bk-accent">پەیوەندیمان</h2>
       <p className="mb-3 text-xs text-bk-muted">
-        ناونیشان، ژمارە (تەلەفۆن/واتسئاپ)، لینکی پەڕە (ئینستاگرام، …) — لە
-        ماڵەوە و /contact دەردەکەوێت.
+        {ADMIN_KURDISH_ONLY_HINT} · ژمارە یان لینکی پەڕە پێویستە
       </p>
       {error ? <p className="mb-2 text-xs text-red-300">{error}</p> : null}
       <button
@@ -69,26 +73,23 @@ export function AdminContacts({ contacts }: Props) {
 
       {showForm ? (
         <div className="mb-4 flex flex-col gap-2 rounded-xl border border-white/10 p-3">
-          <input
-            placeholder="ناونیشان (کوردی) *"
-            value={editing.labelCkb ?? ""}
-            onChange={(e) =>
-              setEditing((s) => ({ ...s, labelCkb: e.target.value }))
+          <AdminKurdishNameFields
+            ckbPlaceholder="ناونیشان (کوردی) *"
+            values={{
+              ckb: editing.labelCkb ?? "",
+              ar: editing.labelAr,
+              en: editing.labelEn,
+            }}
+            onChange={(p) =>
+              setEditing((s) => ({
+                ...s,
+                ...(p.ckb !== undefined ? { labelCkb: p.ckb } : {}),
+                ...(p.ar !== undefined ? { labelAr: p.ar } : {}),
+                ...(p.en !== undefined ? { labelEn: p.en } : {}),
+              }))
             }
-          />
-          <input
-            placeholder="العنوان عربي"
-            value={editing.labelAr ?? ""}
-            onChange={(e) =>
-              setEditing((s) => ({ ...s, labelAr: e.target.value }))
-            }
-          />
-          <input
-            placeholder="English label"
-            value={editing.labelEn ?? ""}
-            onChange={(e) =>
-              setEditing((s) => ({ ...s, labelEn: e.target.value }))
-            }
+            showMore={moreNames}
+            onToggleMore={() => setMoreNames((v) => !v)}
           />
           <input
             placeholder="ژمارە (0750…)"

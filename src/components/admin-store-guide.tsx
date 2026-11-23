@@ -21,8 +21,8 @@ export function AdminStoreGuide() {
     <section className="glass mb-6 rounded-2xl border border-bk-accent/20 p-4">
       <h2 className="mb-2 text-sm font-bold text-bk-accent">ڕێنمایی فرۆشیار</h2>
       <p className="mb-2 text-[11px] text-bk-muted">
-        لە سەرەوە «ئێستا لەم بەشەدایت» دەردەکەوێت — یان لە لیستەکە کلیک بکە
-        بۆ گەیشتن.
+        ناوەکان: تەنها کوردی — عەرەبی/ئینگلیزی خۆکار. لە سەرەوە بەشێک
+        هەڵبژێرە.
       </p>
       <AdminHealth />
       <ol className="mt-2 list-inside list-decimal space-y-1.5 text-xs">
