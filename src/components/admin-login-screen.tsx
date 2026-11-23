@@ -1,12 +1,16 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { ArrowRight } from "lucide-react";
 import { useState, useTransition } from "react";
+import { backFallbackPath } from "@/lib/app-back";
 
 type Props = {
   onLoggedIn?: () => void;
 };
 
 export function AdminLoginScreen({ onLoggedIn }: Props) {
+  const router = useRouter();
   const [pending, start] = useTransition();
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
@@ -34,7 +38,15 @@ export function AdminLoginScreen({ onLoggedIn }: Props) {
     });
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-4 px-4">
+    <div className="relative mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-4 px-4">
+      <button
+        type="button"
+        className="absolute start-4 top-6 inline-flex items-center gap-1 text-xs text-bk-muted"
+        onClick={() => router.push(backFallbackPath("/admin"))}
+      >
+        <ArrowRight className="h-4 w-4" aria-hidden />
+        گەڕانەوە
+      </button>
       <div className="text-center">
         <h1 className="text-xl font-bold text-white">ئەدمین</h1>
         <p className="mt-1 text-xs text-bk-muted">Bartender Kurd</p>

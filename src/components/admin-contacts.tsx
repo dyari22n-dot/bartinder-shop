@@ -52,6 +52,7 @@ export function AdminContacts({ contacts }: Props) {
 
   return (
     <section className="glass mb-6 rounded-2xl p-4">
+      <p className="mb-0.5 text-[10px] font-semibold text-bk-accent">هەنگاو ٤</p>
       <h2 className="mb-2 text-sm font-bold text-bk-accent">پەیوەندیمان</h2>
       <p className="mb-3 text-xs text-bk-muted">
         ناونیشان، ژمارە (تەلەفۆن/واتسئاپ)، لینکی پەڕە (ئینستاگرام، …) — لە

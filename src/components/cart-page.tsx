@@ -5,7 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
 import { pickLocale } from "@/lib/i18n";
-import { formatIqd } from "@/lib/whatsapp";
+import { cartTotals, formatCartTotals } from "@/lib/whatsapp";
+import { ProductPrice } from "./product-price";
 import { useLocale } from "./locale-provider";
 import { useCart } from "@/store/cart";
 import { BrandLogo } from "./brand-logo";
@@ -29,10 +30,7 @@ export function CartPage({ catalog }: { catalog: Product[] }) {
       .filter(Boolean) as { product: Product; quantity: number }[];
   }, [items, catalog]);
 
-  const total = lines.reduce(
-    (sum, l) => sum + l.product.priceIqd * l.quantity,
-    0,
-  );
+  const totals = useMemo(() => cartTotals(lines), [lines]);
 
   if (!hydrated) {
     return <p className="text-sm text-bk-muted">…</p>;
@@ -73,7 +71,7 @@ export function CartPage({ catalog }: { catalog: Product[] }) {
                 {pickLocale(locale, product)}
               </p>
               <p className="text-xs text-bk-accent">
-                {formatIqd(product.priceIqd)}
+                <ProductPrice product={product} />
               </p>
               <div className="mt-1 flex items-center gap-2">
                 <button
@@ -106,7 +104,9 @@ export function CartPage({ catalog }: { catalog: Product[] }) {
       <div className="glass rounded-2xl p-4">
         <div className="flex justify-between text-sm">
           <span className="text-bk-muted">{t.total}</span>
-          <span className="font-bold text-bk-accent">{formatIqd(total)}</span>
+          <span className="font-bold text-bk-accent">
+            {formatCartTotals(totals)}
+          </span>
         </div>
         <Link href="/checkout" className="btn-primary mt-4 block">
           {t.checkout}

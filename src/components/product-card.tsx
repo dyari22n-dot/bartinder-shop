@@ -6,7 +6,7 @@ import { BrandLogo } from "./brand-logo";
 import { Plus } from "lucide-react";
 import type { Product } from "@/lib/types";
 import { pickLocale } from "@/lib/i18n";
-import { formatIqd } from "@/lib/whatsapp";
+import { ProductPrice } from "./product-price";
 import { useLocale } from "./locale-provider";
 import { useCart } from "@/store/cart";
 
@@ -37,9 +37,10 @@ export function ProductCard({ product }: { product: Product }) {
           <h3 className="line-clamp-2 text-sm font-semibold text-white">{name}</h3>
         </Link>
         <div className="mt-auto flex items-center justify-between gap-2">
-          <span className="text-sm font-bold text-bk-accent">
-            {formatIqd(product.priceIqd)}
-          </span>
+          <ProductPrice
+            product={product}
+            className="text-sm font-bold text-bk-accent"
+          />
           <button
             type="button"
             onClick={() => add(product)}

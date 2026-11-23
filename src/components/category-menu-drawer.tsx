@@ -39,7 +39,7 @@ export function CategoryMenuDrawer({
             type="button"
             onClick={onClose}
             className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white"
-            aria-label="Close"
+            aria-label={t.back}
           >
             <X className="h-5 w-5" />
           </button>

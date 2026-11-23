@@ -78,6 +78,7 @@ export function AdminSellers({ logins: initial }: Props) {
 
   return (
     <section className="glass mb-6 rounded-2xl p-4">
+      <p className="mb-0.5 text-[10px] font-semibold text-bk-muted">زیادە · فرۆشیار</p>
       <h2 className="mb-2 text-sm font-bold text-bk-accent">فرۆشیارانی تر</h2>
       <p className="mb-3 text-xs text-bk-muted">
         ناو + وشەی نهێنی · چوونەژوورەوە لە{" "}

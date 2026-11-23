@@ -35,6 +35,8 @@ export type Product = {
   descriptionAr?: string;
   descriptionEn?: string;
   priceIqd: number;
+  /** ئارەزوومەندانە — لەگەڵ IQD پیشان دەدرێت */
+  priceUsd?: number;
   imageUrl?: string;
   active: boolean;
   createdAt: string;

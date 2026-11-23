@@ -4,7 +4,7 @@ import Image from "next/image";
 import { BrandLogo } from "./brand-logo";
 import type { Product } from "@/lib/types";
 import { pickLocale } from "@/lib/i18n";
-import { formatIqd } from "@/lib/whatsapp";
+import { ProductPrice } from "./product-price";
 import { useLocale } from "./locale-provider";
 import { useCart } from "@/store/cart";
 
@@ -41,7 +41,7 @@ export function ProductDetail({ product }: { product: Product }) {
       <div>
         <h1 className="text-xl font-bold text-white">{name}</h1>
         <p className="mt-2 text-2xl font-bold text-bk-accent">
-          {formatIqd(product.priceIqd)}
+          <ProductPrice product={product} />
         </p>
         {desc ? (
           <p className="mt-3 text-sm leading-relaxed text-bk-muted">{desc}</p>

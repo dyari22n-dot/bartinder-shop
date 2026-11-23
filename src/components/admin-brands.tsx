@@ -77,6 +77,7 @@ export function AdminBrands({
 
   return (
     <section className="glass mb-6 rounded-2xl p-4">
+      <p className="mb-0.5 text-[10px] font-semibold text-bk-accent">هەنگاو ٢</p>
       <h2 className="mb-2 text-sm font-bold text-bk-accent">براندەکان</h2>
       <p className="mb-3 text-xs text-bk-muted">
         فلتەر بۆ قاوە و بەشەکان — کڕیار لە /brands دەبینێت.

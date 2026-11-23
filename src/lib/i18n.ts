@@ -40,6 +40,7 @@ export const ui = {
     contactNav: "پەیوەندی",
     brands: "براندەکان",
     brand: "براند",
+    back: "گەڕانەوە",
   },
   ar: {
     home: "الرئيسية",
@@ -61,6 +62,7 @@ export const ui = {
     contactNav: "اتصل",
     brands: "العلامات",
     brand: "علامة",
+    back: "رجوع",
   },
   en: {
     home: "Home",
@@ -82,5 +84,6 @@ export const ui = {
     contactNav: "Contact",
     brands: "Brands",
     brand: "Brand",
+    back: "Back",
   },
 } as const;
