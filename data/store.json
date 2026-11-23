@@ -1,0 +1,226 @@
+{
+  "categories": [
+    {
+      "id": "espresso-machine",
+      "slug": "espresso-machine",
+      "nameCkb": "ئامێری ئێسپرسۆ",
+      "nameAr": "آلة الإسبريسو",
+      "nameEn": "Espresso machines",
+      "sortOrder": 1,
+      "motionMediaUrl": "/uploads/espresso-machine-motion.mp4"
+    },
+    {
+      "id": "grinder",
+      "slug": "grinder",
+      "nameCkb": "گرایندەر",
+      "nameAr": "طحنة",
+      "nameEn": "Grinders",
+      "sortOrder": 2,
+      "motionMediaUrl": "/uploads/grinder-motion.mp4"
+    },
+    {
+      "id": "coffee-beans",
+      "slug": "coffee-beans",
+      "nameCkb": "دەنکی قاوە",
+      "nameAr": "حبوب القهوة",
+      "nameEn": "Coffee beans",
+      "sortOrder": 3,
+      "motionMediaUrl": "/uploads/coffee-beans-motion.mp4"
+    },
+    {
+      "id": "syrup-puree-sauce",
+      "slug": "syrup-puree-sauce",
+      "nameCkb": "سیرۆپ و پیورێ و سۆس",
+      "nameAr": "سيروب وبوريه وصلصة",
+      "nameEn": "Syrup, puree & sauce",
+      "sortOrder": 4
+    },
+    {
+      "id": "powder",
+      "slug": "powder",
+      "nameCkb": "پاۆدەرەکان",
+      "nameAr": "البودرة",
+      "nameEn": "Powders",
+      "sortOrder": 5
+    },
+    {
+      "id": "hot-accessories",
+      "slug": "hot-accessories",
+      "nameCkb": "ئێکسسوارتی بەشی گەرم",
+      "nameAr": "اكسسوارات القسم الساخن",
+      "nameEn": "Hot bar accessories",
+      "sortOrder": 6
+    },
+    {
+      "id": "cold-accessories",
+      "slug": "cold-accessories",
+      "nameCkb": "ئێکسسواراتی بەشی ساڕد",
+      "nameAr": "اكسسوارات القسم البارد",
+      "nameEn": "Cold bar accessories",
+      "sortOrder": 7
+    },
+    {
+      "id": "garnish",
+      "slug": "garnish",
+      "nameCkb": "بابەتی گاڕنیش",
+      "nameAr": "مواد الزينة",
+      "nameEn": "Garnish",
+      "sortOrder": 8
+    },
+    {
+      "id": "blender",
+      "slug": "blender",
+      "nameCkb": "بلێندەر",
+      "nameAr": "خلاط",
+      "nameEn": "Blenders",
+      "sortOrder": 9
+    },
+    {
+      "id": "juice",
+      "slug": "juice",
+      "nameCkb": "چاکان",
+      "nameAr": "عصائر",
+      "nameEn": "Juices",
+      "sortOrder": 10
+    },
+    {
+      "id": "non-alcoholic",
+      "slug": "non-alcoholic",
+      "nameCkb": "بابەتی ناۆ ساڵە",
+      "nameAr": "مواد غير كحولية",
+      "nameEn": "Non-alcoholic",
+      "sortOrder": 11
+    },
+    {
+      "id": "coffee-bar",
+      "slug": "coffee-bar",
+      "nameCkb": "کۆفی باڕ",
+      "nameAr": "كوفي بار",
+      "nameEn": "Coffee bar",
+      "sortOrder": 12
+    },
+    {
+      "id": "cleaners",
+      "slug": "cleaners",
+      "nameCkb": "پاک کەرەوەکان",
+      "nameAr": "منظفات",
+      "nameEn": "Cleaners",
+      "sortOrder": 13
+    },
+    {
+      "id": "equipment",
+      "slug": "equipment",
+      "nameCkb": "ئامێری کارەبایی و دەستی",
+      "nameAr": "أجهزة كهربائية ويدوية",
+      "nameEn": "Electric & manual equipment",
+      "sortOrder": 14
+    }
+  ],
+  "brands": [
+    {
+      "id": "lavazza",
+      "slug": "lavazza",
+      "nameCkb": "لاڤازا",
+      "nameAr": "لافازا",
+      "nameEn": "Lavazza",
+      "categoryIds": ["coffee-beans", "espresso-machine"],
+      "sortOrder": 1,
+      "active": true
+    },
+    {
+      "id": "illy",
+      "slug": "illy",
+      "nameCkb": "ئیلی",
+      "nameAr": "إيلي",
+      "nameEn": "Illy",
+      "categoryIds": ["coffee-beans"],
+      "sortOrder": 2,
+      "active": true
+    },
+    {
+      "id": "kimbo",
+      "slug": "kimbo",
+      "nameCkb": "کیمبۆ",
+      "nameAr": "كيمبو",
+      "nameEn": "Kimbo",
+      "categoryIds": ["coffee-beans", "powder"],
+      "sortOrder": 3,
+      "active": true
+    },
+    {
+      "id": "lavazza-professional",
+      "slug": "lavazza-professional",
+      "nameCkb": "لاڤازا پڕۆ",
+      "nameAr": "لافازا احترافي",
+      "nameEn": "Lavazza Professional",
+      "categoryIds": ["coffee-beans", "espresso-machine", "grinder"],
+      "sortOrder": 4,
+      "active": true
+    }
+  ],
+  "products": [],
+  "slides": [
+    {
+      "kind": "product",
+      "titleCkb": "",
+      "titleAr": "",
+      "titleEn": "",
+      "active": true,
+      "sortOrder": 1,
+      "id": "84029dfc-2510-496e-9367-d497a13c0b9c"
+    }
+  ],
+  "contacts": [
+    {
+      "id": "contact-wa",
+      "labelCkb": "واتسئاپ",
+      "labelAr": "واتساب",
+      "labelEn": "WhatsApp",
+      "phone": "07507579246",
+      "href": "https://wa.me/9647507579246",
+      "sortOrder": 1,
+      "active": true
+    },
+    {
+      "id": "contact-phone-1",
+      "labelCkb": "تەلەفۆن",
+      "labelAr": "هاتف",
+      "labelEn": "Phone",
+      "phone": "07507579246",
+      "sortOrder": 2,
+      "active": true
+    },
+    {
+      "id": "contact-phone-2",
+      "labelCkb": "تەلەفۆن ٢",
+      "labelAr": "هاتف ٢",
+      "labelEn": "Phone 2",
+      "phone": "07712540404",
+      "sortOrder": 3,
+      "active": true
+    },
+    {
+      "id": "contact-instagram",
+      "labelCkb": "ئینستاگرام",
+      "labelAr": "إنستغرام",
+      "labelEn": "Instagram",
+      "href": "https://www.instagram.com/bartender_kurd/?hl=en",
+      "sortOrder": 4,
+      "active": true
+    },
+    {
+      "id": "contact-telegram",
+      "labelCkb": "تیلیگرام",
+      "labelAr": "تلغرام",
+      "labelEn": "Telegram",
+      "href": "https://t.me/bartenderkurd",
+      "sortOrder": 5,
+      "active": true
+    }
+  ],
+  "settings": {
+    "heroCaptionCkb": "پێداویستی بارتێندەر، کۆفی باڕ و فێرکاری پیشەیی",
+    "heroCaptionAr": "مستلزمات البار والقهوة والتدريب المهني",
+    "heroCaptionEn": "Bar supplies, coffee bar & professional training"
+  }
+}

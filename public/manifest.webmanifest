@@ -1,0 +1,24 @@
+{
+  "id": "/",
+  "name": "Bartender Kurd Shop",
+  "short_name": "Bartender Kurd",
+  "description": "Bar & coffee supplies — Sulaymaniyah",
+  "start_url": "/",
+  "scope": "/",
+  "lang": "ckb",
+  "dir": "rtl",
+  "display": "standalone",
+  "display_override": ["standalone", "browser"],
+  "background_color": "#100805",
+  "theme_color": "#100805",
+  "orientation": "portrait",
+  "categories": ["shopping", "business"],
+  "icons": [
+    {
+      "src": "/brand-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

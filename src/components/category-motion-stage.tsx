@@ -1,0 +1,101 @@
+"use client";
+
+import { useEffect, useRef, type ReactNode } from "react";
+import Image from "next/image";
+
+function isVideo(url: string) {
+  return /\.(mp4|webm|mov)(\?|$)/i.test(url);
+}
+
+function isGif(url: string) {
+  return url.toLowerCase().endsWith(".gif");
+}
+
+export function CategoryMotionStage({
+  motionUrl,
+  children,
+}: {
+  motionUrl?: string;
+  children: ReactNode;
+}) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    const wrap = wrapRef.current;
+    if (!video || !wrap) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          void video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -5% 0px" },
+    );
+    observer.observe(wrap);
+    return () => observer.disconnect();
+  }, [motionUrl]);
+
+  if (!motionUrl) {
+    return <div className="flex flex-col gap-3">{children}</div>;
+  }
+
+  const video = isVideo(motionUrl);
+
+  if (video) {
+    return (
+      <div ref={wrapRef} className="flex flex-col gap-3">
+        <div
+          className="category-motion-stage category-motion-stage--solo-video overflow-hidden rounded-3xl"
+          aria-hidden
+        >
+          <video
+            key={motionUrl}
+            ref={videoRef}
+            className="category-motion-stage__solo-video"
+            src={motionUrl}
+            muted
+            loop
+            playsInline
+            autoPlay
+            preload="auto"
+          />
+        </div>
+        <div className="flex flex-col gap-3">{children}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={wrapRef}
+      className="category-motion-stage relative flex flex-col gap-3 overflow-hidden rounded-3xl p-3"
+    >
+      <div className="pointer-events-none absolute inset-0" aria-hidden>
+        {isGif(motionUrl) ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={motionUrl}
+            alt=""
+            className="category-motion-stage__media"
+          />
+        ) : (
+          <Image
+            src={motionUrl}
+            alt=""
+            fill
+            className="object-cover opacity-40"
+            sizes="448px"
+            unoptimized
+          />
+        )}
+        <div className="category-motion-stage__shade" />
+      </div>
+      <div className="relative z-10 flex flex-col gap-3">{children}</div>
+    </div>
+  );
+}
