@@ -105,11 +105,6 @@ export async function readRawStore(): Promise<StoreData> {
 
 /** نووسین — هەمان شوێنی سەرچاوە */
 export async function writeRawStore(data: StoreData): Promise<void> {
-  try {
-    await connection();
-  } catch {
-    /* runtime */
-  }
   const normalized = normalizeStoreData(data);
 
   if (firestoreEnabled()) {

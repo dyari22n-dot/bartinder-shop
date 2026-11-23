@@ -89,8 +89,9 @@ export function firestoreCredentialStatus(): {
 function loadServiceAccount():
   | { projectId: string; clientEmail: string; privateKey: string }
   | undefined {
-  const b64 = process.env.FIREBASE_SERVICE_ACCOUNT_B64?.trim();
-  if (b64) {
+  const b64Raw = process.env.FIREBASE_SERVICE_ACCOUNT_B64?.trim();
+  if (b64Raw) {
+    const b64 = b64Raw.replace(/\s+/g, "");
     try {
       const raw = Buffer.from(b64, "base64").toString("utf8");
       const fromJson = parseServiceAccountJson(raw);
@@ -157,9 +158,14 @@ export function ensureAdminApp() {
           privateKey: account.privateKey,
         }),
       });
-    } else {
-      initializeApp({ credential: applicationDefault() });
+      return;
     }
+    if (process.env.VERCEL) {
+      throw new Error(
+        "Firebase credential لە Vercel ناگونجێت — FIREBASE_SERVICE_ACCOUNT_B64 یان CLIENT_EMAIL + PRIVATE_KEY (\\n) چاک بکە",
+      );
+    }
+    initializeApp({ credential: applicationDefault() });
   }
 }
 

@@ -14,7 +14,7 @@ function isGif(url: string) {
 export function CategoryMotionStage({
   motionUrl,
   children,
-  /** ماڵەوە — بێ وێنەی پاشبنەی قورس */
+  /** ماڵەوە — ڤیدیۆ پیشان دەدرێت، تەنها وێنەی پاشبنەی گەورە نا */
   lite = false,
 }: {
   motionUrl?: string;
@@ -43,7 +43,7 @@ export function CategoryMotionStage({
     return () => observer.disconnect();
   }, [motionUrl]);
 
-  if (!motionUrl || lite) {
+  if (!motionUrl) {
     return <div className="flex flex-col gap-3">{children}</div>;
   }
 
@@ -70,6 +70,10 @@ export function CategoryMotionStage({
         <div className="flex flex-col gap-3">{children}</div>
       </div>
     );
+  }
+
+  if (lite) {
+    return <div className="flex flex-col gap-3">{children}</div>;
   }
 
   return (
