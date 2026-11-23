@@ -9,15 +9,6 @@ function blobToken(): string | undefined {
   return process.env.BLOB_READ_WRITE_TOKEN?.trim();
 }
 
-/** لە Vercel بە Blob پاشەکەوت (بێ Firestore / Blaze) */
-export function storeBlobPrimary(): boolean {
-  const mode = process.env.STORE_BACKEND?.trim().toLowerCase();
-  if (mode === "firestore") return false;
-  if (mode === "blob") return vercelBlobEnabled();
-  if (process.env.VERCEL && vercelBlobEnabled()) return true;
-  return false;
-}
-
 async function readStreamAsText(
   stream: ReadableStream<Uint8Array>,
 ): Promise<string> {

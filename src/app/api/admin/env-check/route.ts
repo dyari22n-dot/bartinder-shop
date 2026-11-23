@@ -4,11 +4,10 @@ import { legacyAuthedFromJar } from "@/lib/admin-auth";
 import { vercelBlobEnabled } from "@/lib/media-upload";
 import {
   readStoreFromBlob,
-  storeBlobPrimary,
   STORE_BLOB_PATH,
 } from "@/lib/store-blob";
 
-/** پاشەکەوت / خوێندن — Blob یان Firestore */
+/** پاشەکەوت / خوێندن — تەنها Vercel Blob */
 export async function GET() {
   const jar = await cookies();
   if (!legacyAuthedFromJar(jar)) {
@@ -17,7 +16,7 @@ export async function GET() {
 
   const body = {
     ok: true,
-    storeBackend: storeBlobPrimary() ? "blob" : "other",
+    storeBackend: "blob",
     vercelBlob: vercelBlobEnabled(),
     blobPath: STORE_BLOB_PATH,
     blobReadOk: false,
@@ -31,11 +30,6 @@ export async function GET() {
     body.hint =
       "Vercel → Storage → Blob → Connect → BLOB_READ_WRITE_TOKEN بۆ Production";
     return NextResponse.json(body);
-  }
-
-  if (!storeBlobPrimary()) {
-    body.hint =
-      "Blob هەیە بەڵام STORE_BACKEND نییە — لە Production ئۆتۆ پێشەنگی Blob (یان STORE_BACKEND=blob)";
   }
 
   try {

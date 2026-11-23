@@ -2,19 +2,13 @@ import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { connection } from "next/server";
 import type { StoreData } from "./types";
-import {
-  firestoreEnabled,
-  firestoreStoreDocId,
-  getAdminFirestore,
-} from "./firebase-admin";
+import { vercelBlobEnabled } from "./media-upload";
 import {
   readStoreFromBlob,
-  storeBlobPrimary,
   writeStoreToBlob,
 } from "./store-blob";
 
 const storePath = path.join(process.cwd(), "data", "store.json");
-const FIRESTORE_COLLECTION = "stores";
 
 export function normalizeStoreData(data: StoreData): StoreData {
   if (!data.slides) data.slides = [];
@@ -33,33 +27,7 @@ async function writeStoreToJson(data: StoreData): Promise<void> {
   await writeFile(storePath, `${JSON.stringify(data, null, 2)}\n`, "utf8");
 }
 
-async function readStoreFromFirestore(): Promise<StoreData | null> {
-  const db = getAdminFirestore();
-  const snap = await db
-    .collection(FIRESTORE_COLLECTION)
-    .doc(firestoreStoreDocId())
-    .get();
-  if (!snap.exists) return null;
-  const payload = snap.data()?.payload as StoreData | undefined;
-  if (!payload) return null;
-  return normalizeStoreData(payload);
-}
-
-async function writeStoreToFirestore(data: StoreData): Promise<void> {
-  const db = getAdminFirestore();
-  await db
-    .collection(FIRESTORE_COLLECTION)
-    .doc(firestoreStoreDocId())
-    .set(
-      {
-        payload: data,
-        updatedAt: new Date().toISOString(),
-      },
-      { merge: true },
-    );
-}
-
-/** خوێندن — Blob (Vercel) یان Firestore یان data/store.json */
+/** خوێندن — Vercel Blob یان data/store.json */
 export async function readRawStore(): Promise<StoreData> {
   try {
     await connection();
@@ -67,47 +35,18 @@ export async function readRawStore(): Promise<StoreData> {
     /* ok on some runtimes */
   }
 
-  if (storeBlobPrimary()) {
+  if (vercelBlobEnabled()) {
     try {
       const fromBlob = await readStoreFromBlob();
-      if (fromBlob) {
-        return normalizeStoreData(fromBlob);
-      }
+      if (fromBlob) return normalizeStoreData(fromBlob);
       const local = await readStoreFromJson();
       await writeStoreToBlob(normalizeStoreData(local)).catch(() => undefined);
       return local;
     } catch (e) {
       console.warn(
-        "[store] Blob read failed:",
+        "[store] Blob unavailable, using data/store.json:",
         e instanceof Error ? e.message : e,
       );
-    }
-  }
-
-  if (firestoreEnabled()) {
-    try {
-      const fromCloud = await readStoreFromFirestore();
-      if (fromCloud) return fromCloud;
-      const local = await readStoreFromJson();
-      await writeStoreToFirestore(local).catch(() => undefined);
-      return local;
-    } catch (e) {
-      console.warn(
-        "[store] Firestore unavailable, using data/store.json:",
-        e instanceof Error ? e.message : e,
-      );
-      try {
-        return await readStoreFromJson();
-      } catch {
-        return normalizeStoreData({
-          categories: [],
-          products: [],
-          slides: [],
-          contacts: [],
-          brands: [],
-          settings: {},
-        });
-      }
     }
   }
 
@@ -125,51 +64,29 @@ export async function readRawStore(): Promise<StoreData> {
   }
 }
 
-/** نووسین — هەمان شوێنی سەرچاوە */
+/** نووسین — Vercel Blob لە production، JSON لە لۆکاڵ */
 export async function writeRawStore(data: StoreData): Promise<void> {
   const normalized = normalizeStoreData(data);
 
-  if (storeBlobPrimary()) {
-    try {
-      await writeStoreToBlob(normalized);
-      return;
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      console.error("[store] Blob write failed:", msg);
-      if (process.env.VERCEL) {
-        throw new Error(msg);
-      }
-    }
-  }
-
-  if (firestoreEnabled()) {
-    try {
-      await writeStoreToFirestore(normalized);
-      return;
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      console.error("[store] Firestore write failed:", msg);
-      if (process.env.VERCEL) {
-        throw new Error(msg);
-      }
-      console.warn("[store] falling back to local JSON");
-    }
+  if (vercelBlobEnabled()) {
+    await writeStoreToBlob(normalized);
+    return;
   }
 
   if (process.env.VERCEL) {
     throw new Error(
-      "پاشەکەوت ناکرێت — BLOB_READ_WRITE_TOKEN لە Vercel یان STORE_BACKEND=blob",
+      "پاشەکەوت ناکرێت — Vercel → Storage → Blob → BLOB_READ_WRITE_TOKEN",
     );
   }
 
   await writeStoreToJson(normalized);
 }
 
-export async function syncJsonToFirestore(): Promise<{ ok: boolean; message: string }> {
-  if (!firestoreEnabled()) {
-    return { ok: false, message: "Firebase ڕێکنەخراوە (.env.local)" };
+export async function syncJsonToBlob(): Promise<{ ok: boolean; message: string }> {
+  if (!vercelBlobEnabled()) {
+    return { ok: false, message: "BLOB_READ_WRITE_TOKEN نییە" };
   }
   const local = await readStoreFromJson();
-  await writeStoreToFirestore(local);
-  return { ok: true, message: "store.json → Firestore نێردرا" };
+  await writeStoreToBlob(local);
+  return { ok: true, message: "store.json → Vercel Blob نێردرا" };
 }

@@ -14,8 +14,7 @@ export function AdminHealth() {
           ok?: boolean;
           readOk?: boolean;
           writeOk?: boolean;
-          firestoreConfigured?: boolean;
-          credentialLoadable?: boolean;
+          vercelBlob?: boolean;
           counts?: { categories: number; products: number; brands: number };
           error?: string | null;
           hint?: string | null;
@@ -44,7 +43,7 @@ export function AdminHealth() {
   return (
     <p className="mb-3 text-[10px] text-bk-muted">
       <button type="button" className="text-bk-accent underline" onClick={run}>
-        پشکنینی Firestore (هەموو بەشەکان)
+        پشکنینی پاشەکەوت (Vercel Blob)
       </button>
       {line ? <span className="mt-1 block text-white">{line}</span> : null}
     </p>

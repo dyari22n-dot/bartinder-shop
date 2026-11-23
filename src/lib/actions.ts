@@ -25,8 +25,9 @@ import {
   type PromoSlideInput,
 } from "./db";
 import type { StoreSettings } from "./types";
-import { firestoreEnabled } from "./firebase-admin";
-import { syncJsonToFirestore } from "./store-persistence";
+import { firebaseAdminEnabled } from "./firebase-admin";
+import { syncJsonToBlob } from "./store-persistence";
+import { vercelBlobEnabled } from "./media-upload";
 import { MAX_UPLOAD_BYTES } from "./optimize-image";
 import { ingestImageUrl, saveOptimizedImageFile } from "./image-ingest";
 import { persistMediaFile, storageHint } from "./media-upload";
@@ -75,7 +76,7 @@ export async function adminSessionFromIdToken(
   idToken: string,
 ): Promise<{ ok: boolean; error?: string }> {
   await connection();
-  if (!firestoreEnabled()) {
+  if (!firebaseAdminEnabled()) {
     return { ok: false, error: "Firebase لە سێرڤەر ڕێکخراو نییە" };
   }
   try {
@@ -123,7 +124,7 @@ export async function adminLogout(): Promise<void> {
   const session = jar.get(ADMIN_SESSION_COOKIE)?.value;
   clear(ADMIN_COOKIE);
   clear(ADMIN_SESSION_COOKIE);
-  if (session && firestoreEnabled()) {
+  if (session && firebaseAdminEnabled()) {
     try {
       const decoded = await getAdminAuth().verifySessionCookie(session, true);
       await getAdminAuth().revokeRefreshTokens(decoded.uid);
@@ -312,28 +313,31 @@ export async function loadStoreAction() {
   return getStore();
 }
 
-export async function syncFirestoreAction(): Promise<{
+export async function syncBlobAction(): Promise<{
   ok: boolean;
   error?: string;
   message?: string;
 }> {
   const authed = await checkAdmin();
   if (!authed) return { ok: false, error: "Unauthorized" };
-  if (!firestoreEnabled()) {
-    return { ok: false, error: "Firebase لە .env.local ڕێکنەخراوە" };
+  if (!vercelBlobEnabled()) {
+    return { ok: false, error: "BLOB_READ_WRITE_TOKEN نییە" };
   }
   try {
-    const res = await syncJsonToFirestore();
+    const res = await syncJsonToBlob();
     return res.ok
       ? { ok: true, message: res.message }
       : { ok: false, error: res.message };
   } catch (e) {
     return {
       ok: false,
-      error: e instanceof Error ? e.message : "Firestore هەڵە",
+      error: e instanceof Error ? e.message : "Blob هەڵە",
     };
   }
 }
+
+/** @deprecated */
+export const syncFirestoreAction = syncBlobAction;
 
 export async function reorderCategoriesAction(
   orderedIds: string[],

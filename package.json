@@ -8,8 +8,6 @@
     "start": "next start",
     "lint": "eslint",
     "logo:transparent": "node scripts/make-logo-transparent.mjs",
-    "store:firestore-sync": "node scripts/sync-firestore.mjs",
-    "store:firestore-check": "node scripts/verify-firestore.mjs",
     "store:blob-sync": "node scripts/sync-store-blob.mjs",
     "deploy:env-hint": "node scripts/print-prod-env.mjs",
     "deploy:firebase": "firebase deploy --only hosting",

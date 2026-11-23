@@ -1,9 +1,9 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { applicationDefault, cert, getApps, initializeApp } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
 
-export function firestoreEnabled(): boolean {
+/** تەنها بۆ Firebase Auth (ئیمەیڵی فرۆشیار) — داتای فرۆشگا لە Vercel Blob */
+export function firebaseAdminEnabled(): boolean {
   return Boolean(
     process.env.FIREBASE_PROJECT_ID?.trim() ||
       process.env.FIREBASE_SERVICE_ACCOUNT_B64?.trim() ||
@@ -12,6 +12,9 @@ export function firestoreEnabled(): boolean {
       process.env.GOOGLE_APPLICATION_CREDENTIALS?.trim(),
   );
 }
+
+/** @deprecated ناوی کۆن — تەنها Auth */
+export const firestoreEnabled = firebaseAdminEnabled;
 
 function normalizePrivateKey(key: string): string {
   let k = key.trim();
@@ -42,48 +45,6 @@ function parseServiceAccountJson(
   } catch {
     return undefined;
   }
-}
-
-/** بۆ health / diagnosis — بەبێ ئاشکراکردنی نهێنی */
-export function firestoreCredentialStatus(): {
-  enabled: boolean;
-  hasProjectId: boolean;
-  hasB64: boolean;
-  hasJson: boolean;
-  hasInlineKey: boolean;
-  hasPath: boolean;
-  loadable: boolean;
-} {
-  const hasProjectId = Boolean(process.env.FIREBASE_PROJECT_ID?.trim());
-  const hasB64 = Boolean(process.env.FIREBASE_SERVICE_ACCOUNT_B64?.trim());
-  const hasJson = Boolean(process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim());
-  const hasInlineKey = Boolean(
-    process.env.FIREBASE_PRIVATE_KEY?.trim() &&
-      process.env.FIREBASE_CLIENT_EMAIL?.trim() &&
-      hasProjectId,
-  );
-  const hasPath = Boolean(
-    process.env.FIREBASE_SERVICE_ACCOUNT_PATH?.trim() ||
-      process.env.GOOGLE_APPLICATION_CREDENTIALS?.trim(),
-  );
-  const enabled = firestoreEnabled();
-  let loadable = false;
-  if (enabled) {
-    try {
-      loadable = Boolean(loadServiceAccount());
-    } catch {
-      loadable = false;
-    }
-  }
-  return {
-    enabled,
-    hasProjectId,
-    hasB64,
-    hasJson,
-    hasInlineKey,
-    hasPath,
-    loadable,
-  };
 }
 
 function loadServiceAccount():
@@ -137,15 +98,8 @@ function loadServiceAccount():
   };
 }
 
-/** Native-mode DB لە bartender-3a68e: id = `default` (نەک `(default)`) */
-export function firestoreDatabaseId(): string {
-  const id = process.env.FIRESTORE_DATABASE_ID?.trim();
-  if (!id || id === "(default)") return "default";
-  return id;
-}
-
 export function ensureAdminApp() {
-  if (!firestoreEnabled()) {
+  if (!firebaseAdminEnabled()) {
     throw new Error("Firebase is not configured");
   }
   if (!getApps().length) {
@@ -161,19 +115,8 @@ export function ensureAdminApp() {
       return;
     }
     if (process.env.VERCEL) {
-      throw new Error(
-        "Firebase credential لە Vercel ناگونجێت — FIREBASE_SERVICE_ACCOUNT_B64 یان CLIENT_EMAIL + PRIVATE_KEY (\\n) چاک بکە",
-      );
+      throw new Error("Firebase credential لە Vercel ناگونجێت");
     }
     initializeApp({ credential: applicationDefault() });
   }
-}
-
-export function getAdminFirestore() {
-  ensureAdminApp();
-  return getFirestore(getApps()[0]!, firestoreDatabaseId());
-}
-
-export function firestoreStoreDocId(): string {
-  return process.env.FIRESTORE_STORE_DOC?.trim() || "bartender-kurd";
 }

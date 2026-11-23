@@ -85,7 +85,7 @@ export async function POST(request: Request) {
       accounts.push({ login, passwordHash: hashAdminPassword(password) });
       await updateStoreSettings({ adminLegacyAccounts: accounts });
       const logins = [...new Set([...accounts.map((a) => a.login), ...loginsFromEnv()])];
-      return NextResponse.json({ ok: true, logins, saved: "firestore" });
+      return NextResponse.json({ ok: true, logins, saved: "blob" });
     } catch (e) {
       const vercelLine = suggestedLegacyUsersEnv(login, password);
       return NextResponse.json(

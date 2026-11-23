@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { connection } from "next/server";
-import { firestoreEnabled } from "./firebase-admin";
+import { firebaseAdminEnabled } from "./firebase-admin";
 import { getAdminAuth, isEmailAllowedForAdmin } from "./admin-session";
 import { ADMIN_COOKIE, ADMIN_SESSION_COOKIE } from "./admin-cookies";
 import { legacyAuthedFromCookie } from "./admin-auth";
@@ -12,7 +12,7 @@ export function isLegacyAuthed(cookieValue: string | undefined): boolean {
 async function verifyAdminSessionCookie(
   session: string | undefined,
 ): Promise<boolean> {
-  if (!session?.trim() || !firestoreEnabled()) return false;
+  if (!session?.trim() || !firebaseAdminEnabled()) return false;
   try {
     const decoded = await getAdminAuth().verifySessionCookie(session, true);
     const email = decoded.email?.trim() ?? "";

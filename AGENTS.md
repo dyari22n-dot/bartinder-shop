@@ -11,5 +11,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Bartender Kurd — shop UX (keep stable)
 
 - **Customers:** bottom nav (home, categories menu, search+brand filter, contact, cart) → checkout WhatsApp. Home: brands strip, category sections, contact icons, shopper hints line.
-- **Sellers (admin `/admin`):** follow `AdminStoreGuide` order — category sort → brands (categories filter) → products (category + optional brand) → contacts → slides/hero. **Data:** Firestore doc `stores/{FIRESTORE_STORE_DOC}` when `FIREBASE_*` env set (`src/lib/store-persistence.ts`); else `data/store.json`. Motion videos stay in `public/uploads/{slug}-motion.mp4` (or future Firebase Storage).
+- **Sellers (admin `/admin`):** follow `AdminStoreGuide` order — category sort → brands (categories filter) → products (category + optional brand) → contacts → slides/hero. **Data:** Vercel Blob `shop/store.json` when `BLOB_READ_WRITE_TOKEN` (`src/lib/store-persistence.ts`); else local `data/store.json`. Media: Vercel Blob or `public/uploads/{slug}-motion.mp4`.
 - Prefer small, mobile-first changes; Kurdish (ckb) primary copy in admin hints.
