@@ -155,6 +155,15 @@ body {
   touch-action: manipulation;
 }
 
+/* Keep the fixed navigation clear of Netlify's injected public badge. */
+body:has(#nl-badge-frame) .mobile-shell .glass--nav {
+  bottom: 5rem;
+}
+
+body:has(#nl-badge-frame) .mobile-shell main {
+  padding-bottom: 12rem;
+}
+
 @media (max-width: 640px) {
   .glass--nav,
   .glass--header {
