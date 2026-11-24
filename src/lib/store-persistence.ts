@@ -43,8 +43,15 @@ export async function readRawStore(): Promise<StoreData> {
   }
 
   if (netlifyBlobsEnabled()) {
-    const fromBlobs = await readStoreFromNetlifyBlobs();
-    if (fromBlobs) return normalizeStoreData(fromBlobs);
+    try {
+      const fromBlobs = await readStoreFromNetlifyBlobs();
+      if (fromBlobs) return normalizeStoreData(fromBlobs);
+    } catch (e) {
+      console.error(
+        "[store] Netlify Blobs read failed:",
+        e instanceof Error ? e.message : e,
+      );
+    }
   }
 
   if (vercelBlobEnabled()) {
