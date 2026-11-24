@@ -521,7 +521,7 @@ export async function uploadProductImageAction(
   }
 
   if (file.size > MAX_UPLOAD_BYTES) {
-    return { ok: false, error: "وێنەکە زۆر گەورەیە (زیاتر لە 50MB)" };
+    return { ok: false, error: "وێنەکە زۆر گەورەیە (زیاتر لە 80MB)" };
   }
 
   const knownType = IMAGE_TYPES.has(file.type);
