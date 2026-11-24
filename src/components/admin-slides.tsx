@@ -17,6 +17,8 @@ type Props = {
 
 export function AdminSlides({ slides, products }: Props) {
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadedImageNeedsSave, setUploadedImageNeedsSave] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState<Partial<PromoSlide> & { isNew?: boolean }>(
     {},
@@ -28,6 +30,7 @@ export function AdminSlides({ slides, products }: Props) {
 
   const startNew = () => {
     setMoreNames(false);
+    setUploadedImageNeedsSave(false);
     setEditing({
       isNew: true,
       kind: "offer",
@@ -42,11 +45,25 @@ export function AdminSlides({ slides, products }: Props) {
   const uploadSlideImage = async (file: File) => {
     const formData = new FormData();
     formData.set("file", file);
-    const res = await uploadProductImageAction(formData);
-    if (res.ok && res.url) setEditing((s) => ({ ...s, imageUrl: res.url }));
+    setError(null);
+    setUploadingImage(true);
+    try {
+      const res = await uploadProductImageAction(formData);
+      if (!res.ok || !res.url) {
+        setError(res.error ?? "هەڵە");
+        return;
+      }
+      setEditing((s) => ({ ...s, imageUrl: res.url }));
+      setUploadedImageNeedsSave(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "هەڵە");
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const save = async () => {
+    if (uploadingImage) return;
     setError(null);
     if (!editing.titleCkb?.trim()) {
       setError("ناونیشانی کوردی پێویستە");
@@ -80,6 +97,7 @@ export function AdminSlides({ slides, products }: Props) {
         return;
       }
       setEditing({});
+      setUploadedImageNeedsSave(false);
       reloadAdmin();
     } catch (e) {
       setError(e instanceof Error ? e.message : "هەڵە");
@@ -161,11 +179,21 @@ export function AdminSlides({ slides, products }: Props) {
             ref={fileRef}
             type="file"
             accept="image/*"
+            disabled={saving || uploadingImage}
             onChange={(e) => {
               const f = e.target.files?.[0];
               if (f) void uploadSlideImage(f);
+              e.currentTarget.value = "";
             }}
           />
+          {uploadingImage ? (
+            <p className="text-[10px] text-bk-muted">بارکردنی وێنە...</p>
+          ) : null}
+          {uploadedImageNeedsSave ? (
+            <p className="text-[10px] text-bk-accent">
+              وێنە بارکرا — پاشەکەوت بکە بۆ پیشاندان لە ماڵەوە
+            </p>
+          ) : null}
           {editing.imageUrl ? (
             <div className="relative h-20 rounded-lg">
               <Image src={editing.imageUrl} alt="" fill className="object-cover" />
@@ -175,15 +203,19 @@ export function AdminSlides({ slides, products }: Props) {
             <button
               type="button"
               className="btn-primary flex-1"
-              disabled={saving}
+              disabled={saving || uploadingImage}
               onClick={() => void save()}
             >
-              پاشەکەوت
+              {uploadingImage ? "چاوەڕوان بە..." : "پاشەکەوت"}
             </button>
             <button
               type="button"
               className="btn-outline flex-1"
-              onClick={() => setEditing({})}
+              disabled={saving || uploadingImage}
+              onClick={() => {
+                setUploadedImageNeedsSave(false);
+                setEditing({});
+              }}
             >
               هەڵوەشاندنەوە
             </button>
@@ -196,7 +228,14 @@ export function AdminSlides({ slides, products }: Props) {
           <li key={s.id} className="flex items-center justify-between text-sm">
             <span>{s.titleCkb}</span>
             <div className="flex gap-2">
-              <button type="button" className="text-bk-accent" onClick={() => setEditing(s)}>
+              <button
+                type="button"
+                className="text-bk-accent"
+                onClick={() => {
+                  setUploadedImageNeedsSave(false);
+                  setEditing(s);
+                }}
+              >
                 دەستکاری
               </button>
               <button
